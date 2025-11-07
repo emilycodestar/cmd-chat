@@ -28,7 +28,8 @@ class RSAService(CryptoService):
             stream=True,
         )
         r.raise_for_status()
-        message = r.raw.read(999)
+        # read the full response content (server returns encrypted symmetric key)
+        message = r.content
         self.symmetric_key = rsa.decrypt(message, self.private_key)
         self.fernet = Fernet(self.symmetric_key)
 

@@ -19,7 +19,7 @@ class CryptoService(ABC):
         raise NotImplementedError("Need to implement generate keys method")
 
     @abstractmethod
-    def _get_generated_keys(self) -> list[str]:
+    def _get_generated_keys(self) -> tuple:
         raise NotImplementedError("Need to implement get generated keys method")
 
     @abstractmethod

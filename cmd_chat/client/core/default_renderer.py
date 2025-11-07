@@ -21,10 +21,11 @@ class DefaultClientRenderer(ClientRenderer):
     def print_message(self, message: str) -> str:
         """ generating string with message in required format
         """
-        message = message.split(":")
-        if message[0] == self.username:
-            return COLORS["my_username_color"] + message[0] + ": " + message[1] + COLORS["text_color"]
-        return message[0] + ": " + message[1] + COLORS["text_color"]
+        # split only on the first ':' to keep message contents intact
+        parts = message.split(":", 1)
+        if parts[0] == self.username:
+            return COLORS["my_username_color"] + parts[0] + ": " + parts[1] + COLORS["text_color"]
+        return parts[0] + ": " + parts[1] + COLORS["text_color"]
 
     def clear_console(self):
         # For windows clear command its cls
@@ -44,9 +45,10 @@ class DefaultClientRenderer(ClientRenderer):
         self,
         username: str
     ) -> str:
-        return f"USERNAME: " + COLORS["ip_color"] + username + COLORS["username_color"]
+        # Username label + colored username
+        return f"USERNAME: " + COLORS["username_color"] + username + COLORS["text_color"]
 
-    def print_chat(self, response: list[str]) -> str:
+    def print_chat(self, response) -> None:
         for i, msg in enumerate(response["messages"]):
             actual_message = self._decrypt(msg)
             if i == 0:

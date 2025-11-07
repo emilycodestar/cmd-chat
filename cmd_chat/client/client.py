@@ -40,7 +40,7 @@ class Client(RSAService, RichClientRenderer):
         return f"{self.ws_url}{path}"
 
     def _connect_ws(self, path: str, retries: int = 5, backoff: float = 0.5):
-        last_exc = None
+        last_exc: Exception = ConnectionError("Failed to connect")
         for attempt in range(retries):
             try:
                 return create_connection(self._ws_full(path))

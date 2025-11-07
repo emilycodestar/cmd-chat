@@ -25,7 +25,7 @@ async def _generate_new_message(
 
 
 async def _generate_update_payload(
-    memory_msgs: list[str],
+    memory_msgs: list[Message],
     users_structure: dict
 ) -> str:
     return str({

@@ -40,7 +40,10 @@ def attach_endpoints(app: Sanic):
         while True:
             serialized_message: dict = await _get_bytes_and_serialize(ws)
             await _check_ws_for_close_status(serialized_message, ws)
-            new_message = await _generate_new_message(serialized_message.get("text"))
+            text = serialized_message.get("text")
+            if text is None:
+                continue
+            new_message = await _generate_new_message(text)
             MESSAGES_MEMORY_DB.append(new_message)
             await ws.send(str({"status": "ok"}))
             await asyncio.sleep(0.2)
