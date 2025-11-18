@@ -1,7 +1,6 @@
 import ast
 import time
 import threading
-from typing import Optional
 
 from websocket import create_connection, WebSocketConnectionClosedException
 
@@ -19,7 +18,7 @@ class Client(RSAService, RichClientRenderer):
         server: str,
         port: int,
         username: str,
-        password: Optional[str] = None
+        password: str | None = None
     ):
         super().__init__()
         self.server = server
