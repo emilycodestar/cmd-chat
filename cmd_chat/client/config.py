@@ -7,5 +7,5 @@ COLORS = {
     "username_color": Fore.GREEN
 }
 
-RENDER_TIME = 0.05
-MESSAGES_TO_SHOW = 5
+RENDER_TIME = 0.1
+MESSAGES_TO_SHOW = 10

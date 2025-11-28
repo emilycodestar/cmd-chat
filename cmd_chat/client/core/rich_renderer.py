@@ -58,21 +58,24 @@ class RichClientRenderer(ClientRenderer):
         return username
 
     def print_chat(self, response) -> None:
-        self.clear_console()
-        for i, msg in enumerate(response["messages"][-MESSAGES_TO_SHOW:]):
+        console.print("Users in chat:", justify="left")
+        table = Table(show_header=True, header_style="bold magenta")
+        table.add_column("IP", style="dim", width=12)
+        table.add_column("USERNAME")
+        for user in response["users_in_chat"]:
+            table.add_row(
+                self.print_ip(user.split(',')[0]),
+                self.print_username(user.split(",")[1])
+            )
+        console.print(table)
+        console.print("Write 'q' to quit from chat", justify="left")
+
+        messages = response["messages"][-MESSAGES_TO_SHOW:]
+        if not messages:
+            console.print("\nNo messages yet. Start the conversation!", justify="left")
+            return
+
+        console.print()
+        for msg in messages:
             actual_message = self._decrypt(msg)
-            if i == 0:
-                console.print("Users in chat:", justify="left")
-                table = Table(show_header=True, header_style="bold magenta")
-                table.add_column("IP", style="dim", width=12)
-                table.add_column("USERNAME")
-                for user in response["users_in_chat"]:
-                    table.add_row(
-                        self.print_ip(user.split(',')[0]),
-                        self.print_username(user.split(",")[1])
-                    )
-                console.print(table)
-                console.print("Write 'q' to quit from chat", justify="left")
-                console.print(f"\n{self.print_message(actual_message)}")
-            else:
-                console.print(f"{self.print_message(actual_message)}")
+            console.print(f"{self.print_message(actual_message)}")

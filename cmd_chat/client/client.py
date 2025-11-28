@@ -1,4 +1,4 @@
-import ast
+import json
 import time
 import threading
 
@@ -18,23 +18,35 @@ class Client(RSAService, RichClientRenderer):
         server: str,
         port: int,
         username: str,
-        password: str | None = None
+        password: str | None = None,
+        token: str | None = None,
+        use_ssl: bool = False
     ):
         super().__init__()
         self.server = server
         self.port = port
         self.username = username
         self.password = password or ""
-        self.base_url = f"http://{self.server}:{self.port}"
-        self.ws_url = f"ws://{self.server}:{self.port}"
-        self.close_response = str({
+        self.token = token
+        self.use_ssl = use_ssl
+        
+        # Detectar protocolo baseado em SSL
+        http_proto = "https" if use_ssl else "http"
+        ws_proto = "wss" if use_ssl else "ws"
+        
+        self.base_url = f"{http_proto}://{self.server}:{self.port}"
+        self.ws_url = f"{ws_proto}://{self.server}:{self.port}"
+        self.close_response = json.dumps({
             "action": "close",
             "username": self.username
         })
         self.__stop_threads = False
 
     def _ws_full(self, path: str) -> str:
-        if self.password:
+        """Constrói URL WebSocket completa com autenticação"""
+        if self.token:
+            return f"{self.ws_url}{path}?token={self.token}"
+        elif self.password:
             return f"{self.ws_url}{path}?password={self.password}"
         return f"{self.ws_url}{path}"
 
@@ -55,6 +67,10 @@ class Client(RSAService, RichClientRenderer):
             while not self.__stop_threads:
                 try:
                     user_input = input("You're message: ")
+                    
+                    if user_input.strip() == "":
+                        continue  # Ignorar mensagens vazias
+                    
                     if user_input == "q":
                         self.__stop_threads = True
                         try:
@@ -64,8 +80,14 @@ class Client(RSAService, RichClientRenderer):
                         except Exception:
                             pass
                         break
+                    
+                    # Message length validation (max 10KB)
+                    if len(user_input) > 10_240:
+                        print("Error: Message too long (max 10KB)")
+                        continue
+                    
                     message = f'{self.username}: {user_input}'
-                    socket_message = str({
+                    socket_message = json.dumps({
                         "text": self._encrypt(message),
                         "username": self.username
                     })
@@ -107,13 +129,21 @@ class Client(RSAService, RichClientRenderer):
                     raw = ws.recv()
                     if isinstance(raw, bytes):
                         raw = raw.decode("utf-8")
-                    response = ast.literal_eval(raw)
-                    if last_try == response:
+                    
+                    # Payload size validation (max 1MB)
+                    if len(raw) > 1_048_576:
+                        print("Warning: Message too large, skipping")
                         continue
-                    last_try = response
-                    self.clear_console()
-                    if len(last_try["messages"]) > 0:
-                        self.print_chat(response=last_try)
+                    
+                    response = json.loads(raw)
+                    
+                    # Sempre atualizar se houver mudanças
+                    if last_try != response:
+                        last_try = response
+                        # Atualizar tela sempre que houver mudanças
+                        self.clear_console()
+                        if len(response.get("messages", [])) > 0:
+                            self.print_chat(response=last_try)
                 except (WebSocketConnectionClosedException, ConnectionResetError, ConnectionAbortedError, OSError):
                     try:
                         if ws:
@@ -145,7 +175,8 @@ class Client(RSAService, RichClientRenderer):
         self._request_key(
             url=f"{self.base_url}/get_key",
             username=self.username,
-            password=self.password
+            password=self.password,
+            token=self.token
         )
         self._remove_keys()
 

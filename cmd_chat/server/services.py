@@ -1,4 +1,4 @@
-import ast
+import json
 from sanic import Websocket
 from cmd_chat.server.models import Message
 
@@ -6,7 +6,15 @@ from cmd_chat.server.models import Message
 async def _get_bytes_and_serialize(
     ws: Websocket
 ) -> dict:
-    return ast.literal_eval(await ws.recv())
+    raw = await ws.recv()
+    if isinstance(raw, bytes):
+        raw = raw.decode("utf-8")
+    
+    # Payload size validation (max 1MB)
+    if len(raw) > 1_048_576:
+        return {"error": "message_too_large"}
+    
+    return json.loads(raw)
 
 
 async def _check_ws_for_close_status(
@@ -28,7 +36,7 @@ async def _generate_update_payload(
     memory_msgs: list[Message],
     users_structure: dict
 ) -> str:
-    return str({
+    return json.dumps({
         "messages": [i.message for i in memory_msgs], 
         "users_in_chat": list(users_structure.keys())
     })

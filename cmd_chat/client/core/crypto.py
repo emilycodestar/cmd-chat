@@ -14,27 +14,56 @@ class RSAService(CryptoService):
         self._generate_keys()
 
     def _encrypt(self, message: str) -> str:
-        return self.fernet.encrypt(message.encode()).decode("utf-8")
+        try:
+            if not self.fernet:
+                raise ValueError("Encryption not initialized")
+            return self.fernet.encrypt(message.encode()).decode("utf-8")
+        except Exception as e:
+            raise RuntimeError(f"Encryption failed: {e}")
 
     def _decrypt(self, message: str) -> str:
-        return self.fernet.decrypt(message.encode()).decode("utf-8")
+        try:
+            if not self.fernet:
+                raise ValueError("Decryption not initialized")
+            return self.fernet.decrypt(message.encode()).decode("utf-8")
+        except Exception as e:
+            raise RuntimeError(f"Decryption failed: {e}")
 
-    def _request_key(self, url: str, username: str, password: str | None = None):
-        pubkey_bytes = self.public_key.save_pkcs1()
-        r = requests.post(
-            url,
-            files={"pubkey": ("public.pem", pubkey_bytes)},
-            data={"username": username, "password": password or ""},
-            stream=True,
-        )
-        r.raise_for_status()
-        # read the full response content (server returns encrypted symmetric key)
-        message = r.content
-        self.symmetric_key = rsa.decrypt(message, self.private_key)
-        self.fernet = Fernet(self.symmetric_key)
+    def _request_key(self, url: str, username: str, password: str | None = None, token: str | None = None):
+        try:
+            pubkey_bytes = self.public_key.save_pkcs1()
+            
+            # Preparar dados de autenticação
+            data = {"username": username}
+            if token:
+                data["token"] = token
+            elif password:
+                data["password"] = password
+            
+            r = requests.post(
+                url,
+                files={"pubkey": ("public.pem", pubkey_bytes)},
+                data=data,
+                stream=True,
+                timeout=10,
+                verify=True  # Verificar certificados SSL
+            )
+            r.raise_for_status()
+            
+            # read the full response content (server returns encrypted symmetric key)
+            message = r.content
+            if not message:
+                raise ValueError("Empty response from server")
+            
+            self.symmetric_key = rsa.decrypt(message, self.private_key)
+            self.fernet = Fernet(self.symmetric_key)
+        except requests.exceptions.RequestException as e:
+            raise ConnectionError(f"Failed to exchange keys with server: {e}")
+        except Exception as e:
+            raise RuntimeError(f"Key exchange failed: {e}")
 
     def _generate_keys(self):
-        self.public_key, self.private_key = rsa.newkeys(512)
+        self.public_key, self.private_key = rsa.newkeys(2048)
 
     def _get_generated_keys(self):
         return self.private_key, self.public_key
