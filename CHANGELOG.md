@@ -5,6 +5,23 @@ All notable changes to the CMD CHAT project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.1] - 2025-12-08
+
+### Fixed
+- **Room-Based Encryption**: Fixed critical issue where users in the same room couldn't read each other's messages
+- **Key Sharing**: Changed from per-client keys to room-based keys - all clients in the same room now share the same encryption key
+- **Room Key Refresh**: Clients now automatically request new room key when switching rooms
+- **Decryption Errors**: Added graceful error handling to skip messages that can't be decrypted (e.g., from old sessions)
+
+### Changed
+- **Key Exchange**: Server now sends room keys instead of per-client keys during key exchange
+- **Key Request**: Client now passes room_id in both URL query string and POST data for reliability
+
+### Technical
+- **Server**: Modified `/get_key` endpoint to return room key instead of per-client key
+- **Client**: Updated key request to include room_id parameter
+- **Renderers**: Added try-except blocks to gracefully handle decryption failures
+
 ## [3.2.0] - 2025-12-08
 
 ### Added

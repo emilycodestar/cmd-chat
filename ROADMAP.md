@@ -10,6 +10,7 @@
 ### 2. Security improvements ✅
 
 - [x] Per-client symmetric keys instead of one global key. *(Completed v3.0.0)*
+- [x] Room-based encryption keys for message sharing. *(Completed v3.2.1 - All clients in same room share key)*
 - [x] Upgrade RSA 512 → 2048 (or curve25519 ECDH + HKDF). *(Completed - Already using RSA 2048-bit)*
 - [x] Replace shared password with invite tokens or session-based bearer tokens. *(Completed v2.0.0 - Token system implemented)*
 - [x] Force WSS (TLS) for production. *(Completed v3.0.0 - --force-ssl option)*
