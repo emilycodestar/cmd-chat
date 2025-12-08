@@ -15,6 +15,10 @@ console = Console(width=75)
 
 
 class RichClientRenderer(ClientRenderer):
+    
+    def _decrypt(self, message: str) -> str:
+        """Decrypt method - will be set by Client class."""
+        raise NotImplementedError("_decrypt must be set by Client class")
 
     def __get_os(self) -> str:
         """ checking what kind of platform you need
@@ -78,5 +82,7 @@ class RichClientRenderer(ClientRenderer):
 
         console.print()
         for msg in messages:
-            actual_message = self._decrypt(msg)
+            # Extract text from message dict if it's a dict, otherwise use msg as string
+            msg_text = msg.get("text", msg) if isinstance(msg, dict) else msg
+            actual_message = self._decrypt(msg_text)
             console.print(f"{self.print_message(actual_message)}")

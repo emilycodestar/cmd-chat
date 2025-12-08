@@ -11,6 +11,10 @@ init()
 
 
 class DefaultClientRenderer(ClientRenderer):
+    
+    def _decrypt(self, message: str) -> str:
+        """Decrypt method - will be set by Client class."""
+        raise NotImplementedError("_decrypt must be set by Client class")
 
     def __get_os(self) -> str:
         """ checking what kind of platform you need
@@ -51,7 +55,9 @@ class DefaultClientRenderer(ClientRenderer):
 
     def print_chat(self, response) -> None:
         for i, msg in enumerate(response["messages"]):
-            actual_message = self._decrypt(msg)
+            # Extract text from message dict if it's a dict, otherwise use msg as string
+            msg_text = msg.get("text", msg) if isinstance(msg, dict) else msg
+            actual_message = self._decrypt(msg_text)
             if i == 0:
                 for user in response["users_in_chat"]:
                     print(self.print_ip(user.split(",")[0]))

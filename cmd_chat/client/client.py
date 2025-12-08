@@ -44,6 +44,8 @@ class Client(RSAService):
         self.room_id = room_id
         self.last_sequence = 0
         self.reconnecting = False
+        self.welcome_shown = False  # Track if welcome message has been shown
+        self.welcome_cleared = False  # Track if user explicitly cleared welcome
         
         # Select renderer based on mode
         renderer = renderer_mode or RENDERER_MODE
@@ -56,6 +58,8 @@ class Client(RSAService):
         
         # Set username for renderer
         self.renderer.username = self.username
+        # Pass decrypt method to renderer
+        self.renderer._decrypt = self._decrypt
         
         # Local history
         self.local_history_enabled = ENABLE_LOCAL_HISTORY
@@ -159,6 +163,14 @@ class Client(RSAService):
     def send_info(self):
         ws = self._connect_ws("/talk")
         try:
+            # Show welcome message on first connection
+            if RENDERER_MODE != "json" and not self.welcome_shown:
+                print(f"\n{t('welcome_message')}")
+                print(t("current_room").format(room_id=self.room_id))
+                print(t("welcome_instructions"))
+                print()  # Empty line for spacing
+                self.welcome_shown = True
+            
             while not self.__stop_threads:
                 try:
                     user_input = input(t("input_prompt") if RENDERER_MODE != "json" else "")
@@ -181,7 +193,7 @@ class Client(RSAService):
                         self._handle_command(user_input, ws)
                         # Check for command response
                         try:
-                            ws.settimeout(0.5)
+                            ws.settimeout(2.0)  # Increased timeout for command responses
                             raw = ws.recv()
                             if isinstance(raw, bytes):
                                 raw = raw.decode("utf-8")
@@ -189,34 +201,60 @@ class Client(RSAService):
                             
                             if msg.get("type") == "command":
                                 cmd = msg.get("command")
+                                
+                                # Handle quit command first
                                 if cmd == "quit":
+                                    if RENDERER_MODE != "json":
+                                        print(t("command_quit"))
                                     self.__stop_threads = True
                                     break
+                                
+                                # Handle room switch
                                 elif cmd == "room":
                                     self.room_id = msg.get("room_id", self.room_id)
+                                
+                                # Handle clear command
                                 elif cmd == "clear" and RENDERER_MODE != "json":
                                     self.renderer.clear_console()
+                                    self.welcome_cleared = True
                                 
+                                # Display command messages
                                 if RENDERER_MODE != "json":
-                                    # Translate command messages
                                     cmd_msg = msg.get("message", "")
-                                    # Map command responses to translation keys
-                                    if cmd == "nick" and "changed to:" in cmd_msg:
-                                        name = cmd_msg.split(":")[-1].strip()
-                                        cmd_msg = t("command_nick_changed").format(name=name)
-                                    elif cmd == "room" and "Switched to room:" in cmd_msg:
-                                        room_id = cmd_msg.split(":")[-1].strip()
-                                        cmd_msg = t("command_room_switched").format(room_id=room_id)
-                                    elif cmd == "error" and "Usage:" in cmd_msg:
-                                        if "/nick" in cmd_msg:
-                                            cmd_msg = t("command_nick_usage")
-                                        elif "/room" in cmd_msg:
-                                            cmd_msg = t("command_room_usage")
-                                    elif cmd == "quit":
-                                        cmd_msg = t("command_quit")
-                                    print(cmd_msg)
-                        except Exception:
-                            pass
+                                    if cmd_msg:  # Only print if there's a message
+                                        # Map command responses to translation keys
+                                        if cmd == "help":
+                                            # Help message is already formatted, just print it
+                                            print(cmd_msg.strip())
+                                        elif cmd == "rooms":
+                                            # List rooms command
+                                            rooms = msg.get("rooms", [])
+                                            if rooms:
+                                                rooms_str = ", ".join(rooms)
+                                                print(t("rooms_list").format(rooms=rooms_str))
+                                            else:
+                                                print(t("no_rooms_available"))
+                                        elif cmd == "nick" and "changed to:" in cmd_msg:
+                                            name = cmd_msg.split(":")[-1].strip()
+                                            print(t("command_nick_changed").format(name=name))
+                                        elif cmd == "room" and "Switched to room:" in cmd_msg:
+                                            room_id = msg.get("room_id") or cmd_msg.split(":")[-1].strip()
+                                            print(t("command_room_switched").format(room_id=room_id))
+                                        elif cmd == "error" and "Usage:" in cmd_msg:
+                                            if "/nick" in cmd_msg:
+                                                print(t("command_nick_usage"))
+                                            elif "/room" in cmd_msg:
+                                                print(t("command_room_usage"))
+                                            else:
+                                                print(cmd_msg)
+                                        else:
+                                            # Print other command messages as-is
+                                            print(cmd_msg)
+                        except Exception as e:
+                            # Log error for debugging but don't crash
+                            if RENDERER_MODE != "json":
+                                import traceback
+                                print(f"Error handling command response: {e}")
                         continue
                     
                     # Message length validation (max 10KB)
@@ -338,6 +376,12 @@ class Client(RSAService):
                         # Render chat
                         if RENDERER_MODE != "json":
                             self.renderer.clear_console()
+                            # Re-print welcome message after clearing (unless user explicitly cleared it)
+                            if not self.welcome_cleared and self.welcome_shown:
+                                print(f"\n{t('welcome_message')}")
+                                print(t("current_room").format(room_id=self.room_id))
+                                print(t("welcome_instructions"))
+                                print()  # Empty line for spacing
                         if len(messages) > 0:
                             self.renderer.print_chat(response=last_try)
                     

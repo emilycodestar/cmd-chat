@@ -1,5 +1,5 @@
 {
-  "input_prompt": "You're message: ",
+  "input_prompt": "Your message: ",
   "reconnecting": "⏳ Reconnecting...",
   "reconnected": "✅ Reconnected successfully",
   "connection_failed": "Can't connect to {path}: {error}",
@@ -12,13 +12,18 @@
   "users_in_chat": "Users in chat:",
   "quit_hint": "Write 'q' to quit from chat",
   "no_messages": "No messages yet. Start the conversation!",
-  "command_help": "Available commands:\n  /help          - Show this help message\n  /nick <name>   - Change your nickname\n  /clear         - Clear chat (client-side)\n  /quit          - Disconnect from chat\n  /room <id>     - Switch to a different room",
+  "command_help": "Available commands:\n  /help          - Show this help message\n  /nick <name>   - Change your nickname\n  /rooms         - List all available rooms\n  /room <id>     - Switch to a different room\n  /clear         - Clear chat (client-side)\n  /quit          - Disconnect from chat\n\n💡 To send a message: Just type your message and press Enter (no / needed)",
   "command_nick_changed": "Nickname changed to: {name}",
   "command_nick_usage": "Usage: /nick <name>",
   "command_room_switched": "Switched to room: {room_id}",
   "command_room_usage": "Usage: /room <room_id>",
   "command_quit": "Disconnecting...",
   "rate_limit_exceeded": "Rate limit exceeded. Please slow down.",
-  "error_processing": "An error occurred processing your message"
+  "error_processing": "An error occurred processing your message",
+  "welcome_message": "✅ Connected to chat!",
+  "welcome_instructions": "💡 How to use:\n  • Type your message and press Enter to send\n  • Use /help to see all commands\n  • Use /room <id> to switch rooms\n  • Type 'q' or /quit to disconnect",
+  "current_room": "Current room: {room_id}",
+  "rooms_list": "Available rooms: {rooms}",
+  "no_rooms_available": "No other rooms available. Use /room <id> to create a new room."
 }
 

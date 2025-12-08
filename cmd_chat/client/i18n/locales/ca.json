@@ -12,13 +12,18 @@
   "users_in_chat": "Usuaris al xat:",
   "quit_hint": "Escriu 'q' per sortir del xat",
   "no_messages": "Encara no hi ha missatges. Comença la conversa!",
-  "command_help": "Comandaments disponibles:\n  /help          - Mostrar aquest missatge d'ajuda\n  /nick <nom>    - Canviar el teu sobrenom\n  /clear         - Netejar xat (costat del client)\n  /quit          - Desconnectar del xat\n  /room <id>     - Canviar a una sala diferent",
+  "command_help": "Comandaments disponibles:\n  /help          - Mostrar aquest missatge d'ajuda\n  /nick <nom>    - Canviar el teu sobrenom\n  /rooms         - Llistar totes les sales disponibles\n  /room <id>     - Canviar a una sala diferent\n  /clear         - Netejar xat (costat del client)\n  /quit          - Desconnectar del xat\n\n💡 Per enviar un missatge: Simplement escriu el teu missatge i prem Enter (no cal /)",
   "command_nick_changed": "Sobrenom canviat a: {name}",
   "command_nick_usage": "Ús: /nick <nom>",
   "command_room_switched": "Canviat a la sala: {room_id}",
   "command_room_usage": "Ús: /room <room_id>",
   "command_quit": "Desconnectant...",
   "rate_limit_exceeded": "Límit de velocitat excedit. Si us plau, redueix la velocitat.",
-  "error_processing": "S'ha produït un error en processar el teu missatge"
+  "error_processing": "S'ha produït un error en processar el teu missatge",
+  "welcome_message": "✅ Connectat al xat!",
+  "welcome_instructions": "💡 Com utilitzar:\n  • Escriu el teu missatge i prem Enter per enviar\n  • Utilitza /help per veure tots els comandaments\n  • Utilitza /room <id> per canviar de sala\n  • Escriu 'q' o /quit per desconnectar",
+  "current_room": "Sala actual: {room_id}",
+  "rooms_list": "Sales disponibles: {rooms}",
+  "no_rooms_available": "No hi ha altres sales disponibles. Utilitza /room <id> per crear una nova sala."
 }
 

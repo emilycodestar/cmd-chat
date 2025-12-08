@@ -12,13 +12,18 @@
   "users_in_chat": "채팅 중인 사용자:",
   "quit_hint": "종료하려면 'q'를 입력하세요",
   "no_messages": "아직 메시지가 없습니다. 대화를 시작하세요!",
-  "command_help": "사용 가능한 명령:\n  /help          - 이 도움말 메시지 표시\n  /nick <이름>   - 닉네임 변경\n  /clear         - 채팅 지우기 (클라이언트 측)\n  /quit          - 채팅에서 연결 끊기\n  /room <id>     - 다른 방으로 전환",
+  "command_help": "사용 가능한 명령:\n  /help          - 이 도움말 메시지 표시\n  /nick <이름>   - 닉네임 변경\n  /rooms         - 사용 가능한 모든 방 나열\n  /room <id>     - 다른 방으로 전환\n  /clear         - 채팅 지우기 (클라이언트 측)\n  /quit          - 채팅에서 연결 끊기\n\n💡 메시지 보내기: 메시지를 입력하고 Enter 키를 누르기만 하면 됩니다 (/ 불필요)",
   "command_nick_changed": "닉네임이 변경되었습니다: {name}",
   "command_nick_usage": "사용법: /nick <이름>",
   "command_room_switched": "방으로 전환되었습니다: {room_id}",
   "command_room_usage": "사용법: /room <room_id>",
   "command_quit": "연결 끊는 중...",
   "rate_limit_exceeded": "속도 제한을 초과했습니다. 속도를 늦춰주세요.",
-  "error_processing": "메시지를 처리하는 중 오류가 발생했습니다"
+  "error_processing": "메시지를 처리하는 중 오류가 발생했습니다",
+  "welcome_message": "✅ 채팅에 연결되었습니다!",
+  "welcome_instructions": "💡 사용 방법:\n  • 메시지를 입력하고 Enter 키를 눌러 보내기\n  • /help를 사용하여 모든 명령 보기\n  • /room <id>를 사용하여 방 전환\n  • 'q' 또는 /quit를 입력하여 연결 끊기",
+  "current_room": "현재 방: {room_id}",
+  "rooms_list": "사용 가능한 방: {rooms}",
+  "no_rooms_available": "다른 방이 없습니다. 새 방을 만들려면 /room <id>를 사용하세요."
 }
 

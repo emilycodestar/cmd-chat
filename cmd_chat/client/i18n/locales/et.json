@@ -12,13 +12,18 @@
   "users_in_chat": "Kasutajad vestluses:",
   "quit_hint": "Kirjutage 'q', et vestlusest väljuda",
   "no_messages": "Sõnumeid veel pole. Alustage vestlust!",
-  "command_help": "Saadaolevad käsud:\n  /help          - Näita seda abiteadet\n  /nick <nimi>   - Muutke oma hüüdnime\n  /clear         - Tühjenda vestlus (kliendi pool)\n  /quit          - Ühendage vestlusest lahti\n  /room <id>     - Lülituge teise ruumi",
+  "command_help": "Saadaolevad käsud:\n  /help          - Näita seda abiteadet\n  /nick <nimi>   - Muutke oma hüüdnime\n  /rooms         - Loetlege kõik saadaolevad ruumid\n  /room <id>     - Lülituge teise ruumi\n  /clear         - Tühjenda vestlus (kliendi pool)\n  /quit          - Ühendage vestlusest lahti\n\n💡 Sõnumi saatmiseks: Lihtsalt kirjutage oma sõnum ja vajutage Enter (pole vaja /)",
   "command_nick_changed": "Hüüdnimi muudetud: {name}",
   "command_nick_usage": "Kasutamine: /nick <nimi>",
   "command_room_switched": "Lülitudud ruumi: {room_id}",
   "command_room_usage": "Kasutamine: /room <room_id>",
   "command_quit": "Ühenduse katkestamine...",
   "rate_limit_exceeded": "Kiiruse piirang ületatud. Palun aeglustage.",
-  "error_processing": "Teie sõnumi töötlemisel ilmnes viga"
+  "error_processing": "Teie sõnumi töötlemisel ilmnes viga",
+  "welcome_message": "✅ Ühendatud vestlusega!",
+  "welcome_instructions": "💡 Kuidas kasutada:\n  • Kirjutage oma sõnum ja vajutage Enter saatmiseks\n  • Kasutage /help kõigi käskude nägemiseks\n  • Kasutage /room <id> ruumide vahetamiseks\n  • Kirjutage 'q' või /quit ühenduse katkestamiseks",
+  "current_room": "Praegune ruum: {room_id}",
+  "rooms_list": "Saadaolevad ruumid: {rooms}",
+  "no_rooms_available": "Teisi ruume pole saadaval. Uue ruumi loomiseks kasutage /room <id>."
 }
 

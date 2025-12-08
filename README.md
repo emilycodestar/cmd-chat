@@ -22,7 +22,7 @@ No logs, no traces, no compromise.
 - **Token-based auth** - Secure token authentication system
 - **Clean error handling** - No stack traces exposed to clients
 - **Multiple rooms** - Support for isolated chat rooms/channels
-- **Chat commands** - Built-in commands (/nick, /clear, /help, /quit, /room)
+- **Chat commands** - Built-in commands (/nick, /clear, /help, /quit, /room, /rooms)
 - **Per-client keys** - Each client gets a unique encryption key
 - **Delta updates** - Only new messages sent (not full history)
 - **Customizable renderers** - Rich, minimal, or JSON output modes
@@ -90,6 +90,17 @@ Everything happens in memory only. Nothing is written to disk.
    # Or with command-line arguments:
    python cmd_chat.py serve 0.0.0.0 1000 --password YOUR_SECURE_PASSWORD
    ```
+   
+   The server will display connection information including the IP address and port:
+   ```
+   ============================================================
+     🚀 CMD CHAT SERVER STARTED
+   ============================================================
+     Server Address: 192.168.1.100:1000
+     Protocol: http:// (WebSocket: ws://)
+     Connect with: python cmd_chat.py connect 192.168.1.100 1000 <username> <password>
+   ============================================================
+   ```
 
 5. **Connect a client:**
    ```bash
@@ -99,6 +110,12 @@ Everything happens in memory only. Nothing is written to disk.
    # Or with command-line arguments:
    python cmd_chat.py connect localhost 1000 USERNAME YOUR_SECURE_PASSWORD
    ```
+
+6. **Start chatting:**
+   - Once connected, you'll see a welcome message with instructions
+   - **To send a message:** Simply type your message and press Enter
+   - **To use commands:** Type commands starting with `/` (e.g., `/help`, `/nick MyName`)
+   - **To quit:** Type `q` or `/quit`
 
 ---
 
@@ -237,6 +254,7 @@ Once connected, you can use these commands:
 - `/help` - Show available commands
 - `/nick <name>` - Change your nickname
 - `/room <id>` - Switch to a different room
+- `/rooms` - List all available rooms
 - `/clear` - Clear the chat display (client-side)
 - `/quit` - Disconnect from the chat
 

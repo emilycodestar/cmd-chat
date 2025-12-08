@@ -49,7 +49,8 @@ async def _generate_update_payload(
     memory_msgs: list[Message],
     users_structure: dict,
     room_id: str = "default",
-    last_sequence: int = 0
+    last_sequence: int = 0,
+    user_rooms: dict | None = None
 ) -> str:
     """Generate update payload with delta updates support."""
     # Filter messages by room and sequence
@@ -58,29 +59,14 @@ async def _generate_update_payload(
         if msg.room_id == room_id and (msg.sequence or 0) > last_sequence
     ]
     
-    return json.dumps({
-        "messages": [
-            {
-                "text": msg.message,
-                "timestamp": msg.timestamp,
-                "sequence": msg.sequence,
-                "username": msg.username
-            }
-            for msg in room_messages
-        ],
-        "users_in_chat": list(users_structure.keys()),
-        "room_id": room_id,
-        "last_sequence": max([msg.sequence or 0 for msg in memory_msgs if msg.room_id == room_id], default=0)
-    })
-
-
-async def _generate_full_update_payload(
-    memory_msgs: list[Message],
-    users_structure: dict,
-    room_id: str = "default"
-) -> str:
-    """Generate full update payload (for initial connection)."""
-    room_messages = [msg for msg in memory_msgs if msg.room_id == room_id]
+    # Filter users by room if user_rooms is provided
+    if user_rooms:
+        users_in_room = [
+            key for key, room in user_rooms.items() 
+            if room == room_id and key in users_structure
+        ]
+    else:
+        users_in_room = list(users_structure.keys())
     
     return json.dumps({
         "messages": [
@@ -92,7 +78,41 @@ async def _generate_full_update_payload(
             }
             for msg in room_messages
         ],
-        "users_in_chat": list(users_structure.keys()),
+        "users_in_chat": users_in_room,
+        "room_id": room_id,
+        "last_sequence": max([msg.sequence or 0 for msg in memory_msgs if msg.room_id == room_id], default=0)
+    })
+
+
+async def _generate_full_update_payload(
+    memory_msgs: list[Message],
+    users_structure: dict,
+    room_id: str = "default",
+    user_rooms: dict | None = None
+) -> str:
+    """Generate full update payload (for initial connection)."""
+    room_messages = [msg for msg in memory_msgs if msg.room_id == room_id]
+    
+    # Filter users by room if user_rooms is provided
+    if user_rooms:
+        users_in_room = [
+            key for key, room in user_rooms.items() 
+            if room == room_id and key in users_structure
+        ]
+    else:
+        users_in_room = list(users_structure.keys())
+    
+    return json.dumps({
+        "messages": [
+            {
+                "text": msg.message,
+                "timestamp": msg.timestamp,
+                "sequence": msg.sequence,
+                "username": msg.username
+            }
+            for msg in room_messages
+        ],
+        "users_in_chat": users_in_room,
         "room_id": room_id,
         "last_sequence": max([msg.sequence or 0 for msg in room_messages], default=0)
     })

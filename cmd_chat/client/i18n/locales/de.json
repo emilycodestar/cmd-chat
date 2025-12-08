@@ -12,13 +12,18 @@
   "users_in_chat": "Benutzer im Chat:",
   "quit_hint": "Schreiben Sie 'q', um den Chat zu verlassen",
   "no_messages": "Noch keine Nachrichten. Beginnen Sie das Gespräch!",
-  "command_help": "Verfügbare Befehle:\n  /help          - Diese Hilfemeldung anzeigen\n  /nick <name>    - Ändern Sie Ihren Spitznamen\n  /clear         - Chat löschen (Client-seitig)\n  /quit          - Vom Chat trennen\n  /room <id>     - Zu einem anderen Raum wechseln",
+  "command_help": "Verfügbare Befehle:\n  /help          - Diese Hilfemeldung anzeigen\n  /nick <name>    - Ändern Sie Ihren Spitznamen\n  /rooms         - Alle verfügbaren Räume auflisten\n  /room <id>     - Zu einem anderen Raum wechseln\n  /clear         - Chat löschen (Client-seitig)\n  /quit          - Vom Chat trennen\n\n💡 Um eine Nachricht zu senden: Geben Sie einfach Ihre Nachricht ein und drücken Sie Enter (kein / erforderlich)",
   "command_nick_changed": "Spitzname geändert zu: {name}",
   "command_nick_usage": "Verwendung: /nick <name>",
   "command_room_switched": "Zu Raum gewechselt: {room_id}",
   "command_room_usage": "Verwendung: /room <room_id>",
   "command_quit": "Trennen...",
   "rate_limit_exceeded": "Rate-Limit überschritten. Bitte verlangsamen Sie.",
-  "error_processing": "Beim Verarbeiten Ihrer Nachricht ist ein Fehler aufgetreten"
+  "error_processing": "Beim Verarbeiten Ihrer Nachricht ist ein Fehler aufgetreten",
+  "welcome_message": "✅ Zum Chat verbunden!",
+  "welcome_instructions": "💡 So verwenden Sie:\n  • Geben Sie Ihre Nachricht ein und drücken Sie Enter zum Senden\n  • Verwenden Sie /help, um alle Befehle zu sehen\n  • Verwenden Sie /room <id>, um Räume zu wechseln\n  • Geben Sie 'q' oder /quit ein, um sich zu trennen",
+  "current_room": "Aktueller Raum: {room_id}",
+  "rooms_list": "Verfügbare Räume: {rooms}",
+  "no_rooms_available": "Keine anderen Räume verfügbar. Verwenden Sie /room <id>, um einen neuen Raum zu erstellen."
 }
 

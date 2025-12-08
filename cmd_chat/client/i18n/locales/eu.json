@@ -12,13 +12,18 @@
   "users_in_chat": "Txateko erabiltzaileak:",
   "quit_hint": "Idatzi 'q' txatetik irteteko",
   "no_messages": "Oraindik ez dago mezuik. Hasi elkarrizketa!",
-  "command_help": "Komando erabilgarriak:\n  /help          - Erakutsi laguntza mezu hau\n  /nick <izena>  - Aldatu zure goitizena\n  /clear         - Garbitu txata (bezero aldean)\n  /quit          - Deskonektatu txatetik\n  /room <id>     - Aldatu beste gela batera",
+  "command_help": "Komando erabilgarriak:\n  /help          - Erakutsi laguntza mezu hau\n  /nick <izena>  - Aldatu zure goitizena\n  /rooms         - Zerrendatu gela erabilgarri guztiak\n  /room <id>     - Aldatu beste gela batera\n  /clear         - Garbitu txata (bezero aldean)\n  /quit          - Deskonektatu txatetik\n\n💡 Mezua bidaltzeko: Idatzi zure mezua eta sakatu Enter (ez da / beharrezkoa)",
   "command_nick_changed": "Goitizena aldatuta: {name}",
   "command_nick_usage": "Erabilera: /nick <izena>",
   "command_room_switched": "Gelara aldatu da: {room_id}",
   "command_room_usage": "Erabilera: /room <room_id>",
   "command_quit": "Deskonektatzen...",
   "rate_limit_exceeded": "Abiadura muga gainditu da. Mesedez, moteldu.",
-  "error_processing": "Errore bat gertatu da zure mezua prozesatzean"
+  "error_processing": "Errore bat gertatu da zure mezua prozesatzean",
+  "welcome_message": "✅ Txatera konektatuta!",
+  "welcome_instructions": "💡 Nola erabili:\n  • Idatzi zure mezua eta sakatu Enter bidaltzeko\n  • Erabili /help komando guztiak ikusteko\n  • Erabili /room <id> gelak aldatzeko\n  • Idatzi 'q' edo /quit deskonektatzeko",
+  "current_room": "Gela egungoa: {room_id}",
+  "rooms_list": "Gela erabilgarriak: {rooms}",
+  "no_rooms_available": "Ez dago beste gelarik erabilgarri. Erabili /room <id> gela berri bat sortzeko."
 }
 

@@ -12,13 +12,18 @@
   "users_in_chat": "Usuarios en el chat:",
   "quit_hint": "Escribe 'q' para salir del chat",
   "no_messages": "Aún no hay mensajes. ¡Comienza la conversación!",
-  "command_help": "Comandos disponibles:\n  /help          - Mostrar este mensaje de ayuda\n  /nick <nombre> - Cambiar tu apodo\n  /clear         - Limpiar chat (lado del cliente)\n  /quit          - Desconectarse del chat\n  /room <id>     - Cambiar a una sala diferente",
+  "command_help": "Comandos disponibles:\n  /help          - Mostrar este mensaje de ayuda\n  /nick <nombre> - Cambiar tu apodo\n  /rooms         - Listar todas las salas disponibles\n  /room <id>     - Cambiar a una sala diferente\n  /clear         - Limpiar chat (lado del cliente)\n  /quit          - Desconectarse del chat\n\n💡 Para enviar un mensaje: Simplemente escribe tu mensaje y presiona Enter (no se necesita /)",
   "command_nick_changed": "Apodo cambiado a: {name}",
   "command_nick_usage": "Uso: /nick <nombre>",
   "command_room_switched": "Cambiado a la sala: {room_id}",
   "command_room_usage": "Uso: /room <room_id>",
   "command_quit": "Desconectando...",
   "rate_limit_exceeded": "Límite de velocidad excedido. Por favor, reduce la velocidad.",
-  "error_processing": "Ocurrió un error al procesar tu mensaje"
+  "error_processing": "Ocurrió un error al procesar tu mensaje",
+  "welcome_message": "✅ ¡Conectado al chat!",
+  "welcome_instructions": "💡 Cómo usar:\n  • Escribe tu mensaje y presiona Enter para enviar\n  • Usa /help para ver todos los comandos\n  • Usa /room <id> para cambiar de sala\n  • Escribe 'q' o /quit para desconectar",
+  "current_room": "Sala actual: {room_id}",
+  "rooms_list": "Salas disponibles: {rooms}",
+  "no_rooms_available": "No hay otras salas disponibles. Usa /room <id> para crear una nueva sala."
 }
 

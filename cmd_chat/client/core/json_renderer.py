@@ -4,6 +4,10 @@ from cmd_chat.client.core.abs.abs_renderer import ClientRenderer
 class JsonClientRenderer(ClientRenderer):
     """JSON mode renderer - outputs raw JSON for programmatic use."""
     
+    def _decrypt(self, message: str) -> str:
+        """Decrypt method - will be set by Client class."""
+        raise NotImplementedError("_decrypt must be set by Client class")
+    
     def print_message(self, message: str) -> str:
         return message
     

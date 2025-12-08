@@ -93,9 +93,12 @@ async def _handle_command(command: str, user_key: str, username: str, ws: Websoc
 Available commands:
   /help          - Show this help message
   /nick <name>   - Change your nickname
+  /rooms         - List all available rooms
+  /room <id>     - Switch to a different room
   /clear         - Clear chat (client-side)
   /quit          - Disconnect from chat
-  /room <id>     - Switch to a different room
+
+💡 To send a message: Just type your message and press Enter (no / needed)
         """
         await ws.send(json.dumps({
             "type": "command",
@@ -138,6 +141,26 @@ Available commands:
                 "type": "command",
                 "command": "error",
                 "message": "Usage: /room <room_id>"
+            }))
+        return True
+    
+    elif cmd == "/rooms":
+        # List all available rooms
+        available_rooms = list(ROOM_KEYS.keys())
+        if available_rooms:
+            rooms_text = ", ".join(available_rooms)
+            await ws.send(json.dumps({
+                "type": "command",
+                "command": "rooms",
+                "message": f"Available rooms: {rooms_text}",
+                "rooms": available_rooms
+            }))
+        else:
+            await ws.send(json.dumps({
+                "type": "command",
+                "command": "rooms",
+                "message": "No other rooms available. Use /room <id> to create a new room.",
+                "rooms": []
             }))
         return True
     
@@ -224,6 +247,9 @@ def attach_endpoints(app: Sanic):
                     await ws.send(json.dumps({"status": "ok"}))
                     last_heartbeat = time.time()
                     await asyncio.sleep(0.01)
+                except asyncio.CancelledError:
+                    # Task was cancelled, break gracefully
+                    break
                 except Exception as e:
                     # Clean error handling - don't expose stack traces
                     await ws.send(json.dumps({
@@ -232,11 +258,13 @@ def attach_endpoints(app: Sanic):
                     }))
                     break
         finally:
-            heartbeat_task.cancel()
-            try:
-                await heartbeat_task
-            except asyncio.CancelledError:
-                pass
+            # Cancel heartbeat task gracefully
+            if not heartbeat_task.done():
+                heartbeat_task.cancel()
+                try:
+                    await asyncio.wait_for(heartbeat_task, timeout=1.0)
+                except (asyncio.CancelledError, asyncio.TimeoutError):
+                    pass
 
     @app.websocket("/update")
     async def update_ws_view(request: Request, ws: Websocket) -> HTTPResponse:
@@ -287,9 +315,9 @@ def attach_endpoints(app: Sanic):
                     
                     # Use delta updates if last_sequence provided, otherwise full update
                     if last_sequence > 0:
-                        payload = await _generate_update_payload(MESSAGES_MEMORY_DB, USERS, room_id, last_sequence)
+                        payload = await _generate_update_payload(MESSAGES_MEMORY_DB, USERS, room_id, last_sequence, USER_ROOMS)
                     else:
-                        payload = await _generate_full_update_payload(MESSAGES_MEMORY_DB, USERS, room_id)
+                        payload = await _generate_full_update_payload(MESSAGES_MEMORY_DB, USERS, room_id, USER_ROOMS)
                     
                     await ws.send(payload.encode())
                     await asyncio.sleep(0.05)
@@ -297,11 +325,13 @@ def attach_endpoints(app: Sanic):
                     # Clean error handling
                     break
         finally:
-            heartbeat_task.cancel()
-            try:
-                await heartbeat_task
-            except asyncio.CancelledError:
-                pass
+            # Cancel heartbeat task gracefully
+            if not heartbeat_task.done():
+                heartbeat_task.cancel()
+                try:
+                    await asyncio.wait_for(heartbeat_task, timeout=1.0)
+                except (asyncio.CancelledError, asyncio.TimeoutError):
+                    pass
 
     @app.route('/get_key', methods=['GET', 'POST'])
     async def get_key_view(request: Request) -> HTTPResponse:
@@ -413,11 +443,31 @@ def attach_endpoints(app: Sanic):
 
 
 def create_app(app_name: str, admin_password: str | None) -> Sanic:
+    import sys
+    
     app = Sanic(app_name)
     app.ctx.ADMIN_PASSWORD = admin_password
     if admin_password:
         TOKEN_MANAGER.set_admin_password(admin_password)
     attach_endpoints(app)
+    
+    # Set up exception handler for Windows BrokenPipeError during shutdown
+    if sys.platform == "win32":
+        @app.before_server_start
+        async def setup_exception_handler(app, loop):
+            def exception_handler(loop, context):
+                exception = context.get('exception')
+                # Ignore BrokenPipeError and KeyboardInterrupt during shutdown (known Sanic issue on Windows)
+                if isinstance(exception, (BrokenPipeError, KeyboardInterrupt)):
+                    return
+                # Use default handler for other exceptions
+                if hasattr(loop, 'default_exception_handler'):
+                    loop.default_exception_handler(context)
+                else:
+                    loop.call_exception_handler(context)
+            
+            loop.set_exception_handler(exception_handler)
+    
     return app
 
 
@@ -431,6 +481,10 @@ def run_server(
     force_ssl: bool = False
 ) -> None:
     """Start server with optional TLS/SSL support. If force_ssl is True, require SSL certificates."""
+    import sys
+    import io
+    import contextlib
+    
     loader = AppLoader(factory=partial(create_app, "CMD_SERVER", admin_password))
     app = loader.load()
     
@@ -446,4 +500,40 @@ def run_server(
         ssl_context.load_cert_chain(ssl_cert, ssl_key)
     
     app.prepare(host=host, port=port, dev=dev, ssl=ssl_context)
-    Sanic.serve(primary=app, app_loader=loader)
+    
+    # Display connection information
+    import socket
+    protocol = "https" if ssl_context else "http"
+    ws_protocol = "wss" if ssl_context else "ws"
+    
+    # Get local IP address for connection
+    try:
+        # Connect to a remote address to determine local IP
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+    except Exception:
+        local_ip = host if host != "0.0.0.0" else "localhost"
+    
+    print("\n" + "="*60)
+    print("  🚀 CMD CHAT SERVER STARTED")
+    print("="*60)
+    print(f"  Server Address: {local_ip}:{port}")
+    print(f"  Protocol: {protocol}:// (WebSocket: {ws_protocol}://)")
+    print(f"  Connect with: python cmd_chat.py connect {local_ip} {port} <username> <password>")
+    print("="*60 + "\n")
+    
+    # Suppress BrokenPipeError on Windows during shutdown
+    # This is a known issue with Sanic's multiprocessing on Windows
+    try:
+        Sanic.serve(primary=app, app_loader=loader)
+    except (BrokenPipeError, SystemExit, KeyboardInterrupt):
+        # Expected during shutdown - these are normal
+        pass
+    except Exception as e:
+        # Only re-raise if it's not a shutdown-related error on Windows
+        if sys.platform == "win32" and isinstance(e, BrokenPipeError):
+            pass  # Ignore BrokenPipeError on Windows
+        else:
+            raise

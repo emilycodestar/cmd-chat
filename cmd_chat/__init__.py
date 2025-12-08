@@ -19,7 +19,111 @@ def run_http_server(
     ssl_key: str | None = None,
     force_ssl: bool = False
 ) -> None:
-    run_server(ip, int(port), False, password, ssl_cert, ssl_key, force_ssl)
+    import threading
+    import signal
+    import sys
+    
+    # Flag to control server shutdown
+    server_stop_event = threading.Event()
+    
+    def input_monitor():
+        """Monitor for 'q' input to stop the server."""
+        import sys
+        import time
+        
+        print("💡 Server running. Type 'q' and press Enter to stop the server, or press Ctrl+C")
+        
+        # On Windows, use msvcrt for non-blocking input
+        if sys.platform == "win32":
+            try:
+                import msvcrt
+                while not server_stop_event.is_set():
+                    try:
+                        if msvcrt.kbhit():
+                            key = msvcrt.getch()
+                            if key == b'q' or key == b'Q':
+                                print("\n🛑 Shutting down server...")
+                                server_stop_event.set()
+                                import os
+                                os.kill(os.getpid(), signal.SIGINT)
+                                break
+                        time.sleep(0.1)
+                    except (EOFError, KeyboardInterrupt):
+                        break
+            except ImportError:
+                # Fallback if msvcrt not available
+                pass
+        else:
+            # On Unix-like systems, use select for non-blocking input
+            import select
+            while not server_stop_event.is_set():
+                try:
+                    if select.select([sys.stdin], [], [], 0.1)[0]:
+                        user_input = sys.stdin.readline()
+                        if user_input.strip().lower() == 'q':
+                            print("\n🛑 Shutting down server...")
+                            server_stop_event.set()
+                            import os
+                            os.kill(os.getpid(), signal.SIGINT)
+                            break
+                except (EOFError, KeyboardInterrupt):
+                    break
+    
+    # Start input monitor in a separate thread
+    input_thread = threading.Thread(target=input_monitor, daemon=True)
+    input_thread.start()
+    
+    # Handle graceful shutdown on SIGINT (Ctrl+C)
+    def signal_handler(sig, frame):
+        if not server_stop_event.is_set():
+            print("\n🛑 Shutting down server gracefully...")
+            server_stop_event.set()
+        # Allow Sanic to handle shutdown properly
+        sys.exit(0)
+    
+    signal.signal(signal.SIGINT, signal_handler)
+    
+    # Suppress BrokenPipeError output on Windows
+    import sys
+    import io
+    import contextlib
+    
+    original_stderr = sys.stderr
+    
+    def filtered_stderr_write(data):
+        """Filter out BrokenPipeError messages on Windows."""
+        if sys.platform == "win32":
+            if "BrokenPipeError" in str(data) or "Die Pipe wird gerade geschlossen" in str(data):
+                return  # Suppress the error message
+        original_stderr.write(data)
+    
+    # Replace stderr temporarily
+    class FilteredStderr:
+        def write(self, data):
+            filtered_stderr_write(data)
+        def flush(self):
+            original_stderr.flush()
+    
+    try:
+        # Temporarily replace stderr to filter BrokenPipeError
+        if sys.platform == "win32":
+            sys.stderr = FilteredStderr()
+        
+        run_server(ip, int(port), False, password, ssl_cert, ssl_key, force_ssl)
+    except KeyboardInterrupt:
+        print("\n🛑 Server stopped.")
+    except BrokenPipeError:
+        # Windows-specific: Sanic's internal shutdown can cause this
+        # It's safe to ignore as the server is already shutting down
+        pass
+    except SystemExit:
+        # Expected when shutting down via signal
+        pass
+    finally:
+        # Restore original stderr
+        if sys.platform == "win32":
+            sys.stderr = original_stderr
+        server_stop_event.set()
 
 async def run_client(
     username: str,
@@ -85,21 +189,29 @@ async def run() -> None:
         force_ssl = getattr(args, 'force_ssl', force_ssl_default)
         run_http_server(args.ip_address, args.port, args.password, ssl_cert, ssl_key, force_ssl)
     elif args.command == 'connect':
-        # Validate required arguments
-        if not args.ip_address:
+        # Validate required arguments - check .env if CLI args are missing
+        ip_address = args.ip_address or os.getenv('CLIENT_SERVER')
+        if not ip_address:
             parser.error("ip_address is required (or set CLIENT_SERVER in .env)")
-        if not args.username:
+        
+        username = args.username or os.getenv('CLIENT_USERNAME')
+        if not username:
             parser.error("username is required (or set CLIENT_USERNAME in .env)")
-        if not args.password and not args.token:
+        
+        password = args.password or os.getenv('CLIENT_PASSWORD')
+        token = args.token or os.getenv('CLIENT_TOKEN')
+        if not password and not token:
             parser.error("password or --token is required (or set CLIENT_PASSWORD/CLIENT_TOKEN in .env)")
         
-        token = args.token if args.token else None
+        # Use values from args or fallback to .env
+        final_token = token if token else None
         use_ssl = getattr(args, 'ssl', use_ssl_default)
-        password = args.password if args.password else None
-        room_id = args.room if args.room else 'default'
-        renderer_mode = args.renderer if args.renderer else None
-        language = args.language if args.language else None
-        await run_client(args.username, args.ip_address, int(args.port), password, token, use_ssl, room_id, renderer_mode, language)
+        final_password = password if password else None
+        port = args.port or os.getenv('CLIENT_PORT', '1000')
+        room_id = args.room if args.room else os.getenv('CLIENT_ROOM', 'default')
+        renderer_mode = args.renderer if args.renderer else os.getenv('RENDERER_MODE')
+        language = args.language if args.language else os.getenv('CMD_CHAT_LANGUAGE')
+        await run_client(username, ip_address, int(port), final_password, final_token, use_ssl, room_id, renderer_mode, language)
 
 def main():
     asyncio.run(run())

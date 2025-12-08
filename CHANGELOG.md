@@ -5,6 +5,29 @@ All notable changes to the CMD CHAT project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2025-12-08
+
+### Added
+- **Server Connection Info**: Server now displays IP address and connection instructions on startup
+- **Room-Based User Filtering**: Users list now filtered by room to show only users in the same room
+- **Enhanced Translations**: Updated all 13 language files with missing keys (welcome_message, welcome_instructions, current_room, rooms_list, no_rooms_available)
+- **Improved Command Help**: All languages now include /rooms command in help text
+
+### Changed
+- **Server Startup**: Enhanced server startup message with connection details
+- **Message Routing**: Improved room-based message filtering to ensure users only see messages from their room
+- **Translation Files**: All translation files synchronized with English template
+
+### Fixed
+- **Windows Shutdown**: Fixed BrokenPipeError during server shutdown on Windows
+- **Server Shutdown**: Added graceful shutdown with 'q' command and improved Ctrl+C handling
+- **Message Routing**: Fixed user list to show only users in the same room
+
+### Technical
+- **Server**: Added connection info display with local IP detection
+- **Services**: Enhanced message payload generation to filter users by room
+- **Error Handling**: Improved Windows-specific error handling for graceful shutdown
+
 ## [3.1.0] - 2025-12-07
 
 ### Added
