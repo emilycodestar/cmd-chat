@@ -402,9 +402,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [VoxHash](https://github.com/VoxHash)
 - [Emily 💞](emilycodestar)
-- [himath rajapaksha](anorak999)
-- [Sousa](ESousa97)
-- [Ahmad Allahverdiyev](hmd37)
+  
 ---
 
 ## 🙏 Acknowledgments
