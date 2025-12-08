@@ -21,6 +21,13 @@ No logs, no traces, no compromise.
 - **Heartbeat/ping-pong** - Automatic reconnection with timeout handling
 - **Token-based auth** - Secure token authentication system
 - **Clean error handling** - No stack traces exposed to clients
+- **Multiple rooms** - Support for isolated chat rooms/channels
+- **Chat commands** - Built-in commands (/nick, /clear, /help, /quit, /room)
+- **Per-client keys** - Each client gets a unique encryption key
+- **Delta updates** - Only new messages sent (not full history)
+- **Customizable renderers** - Rich, minimal, or JSON output modes
+- **Local history** - Optional encrypted message history
+- **Internationalization** - 13 supported languages (en, fr, es, zh, ja, de, ru, et, pt, ko, ca, eu, gl)
 - **Easy to run** - Simple Python CLI interface
 
 ---
@@ -92,6 +99,10 @@ python cmd_chat.py serve <IP_ADDRESS> <PORT> --password <PASSWORD>
 # With SSL/TLS support
 python cmd_chat.py serve 0.0.0.0 1000 --password YOUR_PASSWORD \
     --ssl-cert /path/to/cert.pem --ssl-key /path/to/key.pem
+
+# Force SSL/TLS (require certificates)
+python cmd_chat.py serve 0.0.0.0 1000 --password YOUR_PASSWORD \
+    --ssl-cert /path/to/cert.pem --ssl-key /path/to/key.pem --force-ssl
 ```
 
 ### Client Commands
@@ -105,6 +116,20 @@ python cmd_chat.py connect <SERVER_IP> <PORT> <USERNAME> --token <TOKEN>
 
 # Connect with SSL/TLS
 python cmd_chat.py connect <SERVER_IP> <PORT> <USERNAME> <PASSWORD> --ssl
+
+# Connect to a specific room
+python cmd_chat.py connect <SERVER_IP> <PORT> <USERNAME> <PASSWORD> --room myroom
+
+# Connect with JSON renderer (for automation)
+python cmd_chat.py connect <SERVER_IP> <PORT> <USERNAME> <PASSWORD> --renderer json
+
+# Connect with minimal renderer
+python cmd_chat.py connect <SERVER_IP> <PORT> <USERNAME> <PASSWORD> --renderer minimal
+
+# Connect with specific language
+python cmd_chat.py connect <SERVER_IP> <PORT> <USERNAME> <PASSWORD> --language fr
+
+# Supported languages: en, fr, es, zh, ja, de, ru, et, pt, ko, ca, eu, gl
 ```
 
 ### Token Generation
@@ -122,6 +147,18 @@ curl -X POST http://localhost:1000/generate_token \
 
 ## ⚙️ Configuration
 
+### Environment Variables
+
+| Variable | Default | Description |
+|---------|---------|-------------|
+| `CLIENT_RENDER_TIME` | 0.1 | Client render update interval in seconds |
+| `CLIENT_MESSAGES_TO_SHOW` | 10 | Number of messages to display in buffer |
+| `ENABLE_LOCAL_HISTORY` | false | Enable local encrypted message history |
+| `RENDERER_MODE` | rich | Renderer mode: rich, minimal, or json |
+| `CMD_CHAT_LANGUAGE` | en | Language code: en, fr, es, zh, ja, de, ru, et, pt, ko, ca, eu, gl |
+
+### Server Configuration
+
 | Setting | Default | Description |
 |---------|---------|-------------|
 | `MAX_MESSAGES_PER_WINDOW` | 10 | Maximum messages per rate limit window |
@@ -130,6 +167,16 @@ curl -X POST http://localhost:1000/generate_token \
 | `HEARTBEAT_TIMEOUT` | 60.0 | Connection timeout in seconds |
 | `MAX_MESSAGE_SIZE` | 10KB | Maximum message size |
 | `MAX_PAYLOAD_SIZE` | 1MB | Maximum WebSocket payload size |
+
+## 💬 Chat Commands
+
+Once connected, you can use these commands:
+
+- `/help` - Show available commands
+- `/nick <name>` - Change your nickname
+- `/room <id>` - Switch to a different room
+- `/clear` - Clear the chat display (client-side)
+- `/quit` - Disconnect from the chat
 
 ---
 
@@ -178,6 +225,64 @@ curl -X POST http://localhost:1000/generate_token \
 ```bash
 python cmd_chat.py connect localhost 1000 alice --token <GENERATED_TOKEN>
 ```
+
+### Using Rooms
+
+**Create/join a room:**
+```bash
+python cmd_chat.py connect localhost 1000 alice MySecurePass123 --room general
+python cmd_chat.py connect localhost 1000 bob MySecurePass123 --room general
+```
+
+**Switch rooms (while connected):**
+```
+/room dev-team
+```
+
+### Renderer Modes
+
+**Rich mode (default):** Beautiful formatted output with colors and tables
+```bash
+python cmd_chat.py connect localhost 1000 alice MySecurePass123
+```
+
+**Minimal mode:** Simple text output
+```bash
+python cmd_chat.py connect localhost 1000 alice MySecurePass123 --renderer minimal
+```
+
+**JSON mode:** Machine-readable JSON output for automation
+```bash
+python cmd_chat.py connect localhost 1000 alice MySecurePass123 --renderer json
+```
+
+### Language Selection
+
+**Connect with French interface:**
+```bash
+python cmd_chat.py connect localhost 1000 alice MySecurePass123 --language fr
+```
+
+**Or set via environment variable:**
+```bash
+export CMD_CHAT_LANGUAGE=es
+python cmd_chat.py connect localhost 1000 alice MySecurePass123
+```
+
+**Supported languages:**
+- `en` - English (default)
+- `fr` - French
+- `es` - Spanish
+- `zh` - Chinese
+- `ja` - Japanese
+- `de` - German
+- `ru` - Russian
+- `et` - Estonian
+- `pt` - Portuguese
+- `ko` - Korean
+- `ca` - Catalan
+- `eu` - Basque
+- `gl` - Galician
 
 ---
 
