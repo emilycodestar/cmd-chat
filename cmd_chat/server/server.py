@@ -370,13 +370,16 @@ def attach_endpoints(app: Sanic):
         room_id = _get_str_arg(request, "room_id") or "default"
         user_key = f"{request.ip}, {username}"
         
-        # Generate per-client symmetric key
-        client_key = Fernet.generate_key()
-        CLIENT_KEYS[user_key] = client_key
-        
         # Ensure room exists and has a key
         if room_id not in ROOM_KEYS:
             ROOM_KEYS[room_id] = Fernet.generate_key()
+        
+        # Get the room key (shared by all clients in the room)
+        room_key = ROOM_KEYS[room_id]
+        
+        # Also store per-client key for backward compatibility (not used for messages)
+        client_key = Fernet.generate_key()
+        CLIENT_KEYS[user_key] = client_key
         
         # Assign user to room
         USER_ROOMS[user_key] = room_id
@@ -385,8 +388,8 @@ def attach_endpoints(app: Sanic):
         if user_key not in USERS:
             USERS[user_key] = username
         
-        # Encrypt the client key with RSA
-        encrypted_data = rsa.encrypt(client_key, public_key)
+        # Encrypt the ROOM key with RSA (so all clients in the room can decrypt messages)
+        encrypted_data = rsa.encrypt(room_key, public_key)
 
         return response.raw(encrypted_data)
     

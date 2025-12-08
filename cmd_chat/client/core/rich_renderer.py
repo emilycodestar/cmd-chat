@@ -84,5 +84,11 @@ class RichClientRenderer(ClientRenderer):
         for msg in messages:
             # Extract text from message dict if it's a dict, otherwise use msg as string
             msg_text = msg.get("text", msg) if isinstance(msg, dict) else msg
-            actual_message = self._decrypt(msg_text)
-            console.print(f"{self.print_message(actual_message)}")
+            try:
+                actual_message = self._decrypt(msg_text)
+                console.print(f"{self.print_message(actual_message)}")
+            except Exception:
+                # Skip messages that can't be decrypted (e.g., encrypted with old keys)
+                # This can happen when messages were encrypted with per-client keys
+                # before switching to room-based keys
+                continue

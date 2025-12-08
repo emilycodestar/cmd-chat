@@ -211,7 +211,23 @@ class Client(RSAService):
                                 
                                 # Handle room switch
                                 elif cmd == "room":
-                                    self.room_id = msg.get("room_id", self.room_id)
+                                    new_room_id = msg.get("room_id", self.room_id)
+                                    if new_room_id != self.room_id:
+                                        # Room changed - need to get new room key
+                                        self.room_id = new_room_id
+                                        try:
+                                            # Request new key for the new room
+                                            self._request_key(
+                                                url=f"{self.base_url}/get_key?room_id={self.room_id}",
+                                                username=self.username,
+                                                password=self.password,
+                                                token=self.token,
+                                                room_id=self.room_id
+                                            )
+                                        except Exception as e:
+                                            if RENDERER_MODE != "json":
+                                                print(f"Warning: Failed to get new room key: {e}")
+                                            # Continue anyway - old key might still work for some messages
                                 
                                 # Handle clear command
                                 elif cmd == "clear" and RENDERER_MODE != "json":
@@ -421,7 +437,8 @@ class Client(RSAService):
             url=f"{self.base_url}/get_key?room_id={self.room_id}",
             username=self.username,
             password=self.password,
-            token=self.token
+            token=self.token,
+            room_id=self.room_id
         )
         self._remove_keys()
 

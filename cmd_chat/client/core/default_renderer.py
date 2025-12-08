@@ -57,12 +57,18 @@ class DefaultClientRenderer(ClientRenderer):
         for i, msg in enumerate(response["messages"]):
             # Extract text from message dict if it's a dict, otherwise use msg as string
             msg_text = msg.get("text", msg) if isinstance(msg, dict) else msg
-            actual_message = self._decrypt(msg_text)
-            if i == 0:
-                for user in response["users_in_chat"]:
-                    print(self.print_ip(user.split(",")[0]))
-                    print(self.print_username(user.split(",")[1]))
-                print(t("quit_hint"))
-                print(f"\n{self.print_message(actual_message)}")
-            else:
-                print(f"{self.print_message(actual_message)}")
+            try:
+                actual_message = self._decrypt(msg_text)
+                if i == 0:
+                    for user in response["users_in_chat"]:
+                        print(self.print_ip(user.split(",")[0]))
+                        print(self.print_username(user.split(",")[1]))
+                    print(t("quit_hint"))
+                    print(f"\n{self.print_message(actual_message)}")
+                else:
+                    print(f"{self.print_message(actual_message)}")
+            except Exception:
+                # Skip messages that can't be decrypted (e.g., encrypted with old keys)
+                # This can happen when messages were encrypted with per-client keys
+                # before switching to room-based keys
+                continue
