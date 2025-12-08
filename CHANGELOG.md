@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Windows Shutdown**: Fixed BrokenPipeError during server shutdown on Windows
 - **Server Shutdown**: Added graceful shutdown with 'q' command and improved Ctrl+C handling
 - **Message Routing**: Fixed user list to show only users in the same room
+- **Message Decryption**: Fixed AttributeError when decrypting messages (extract text from dict before decrypting)
+- **Welcome Message**: Welcome message now persists until /clear command is used
 
 ### Technical
 - **Server**: Added connection info display with local IP detection
