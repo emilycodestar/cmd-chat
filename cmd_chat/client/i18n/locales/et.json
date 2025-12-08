@@ -1,0 +1,24 @@
+{
+  "input_prompt": "Teie sõnum: ",
+  "reconnecting": "⏳ Ühenduse taastamine...",
+  "reconnected": "✅ Ühendus taastatud edukalt",
+  "connection_failed": "Ei saa ühenduda {path}: {error}",
+  "message_too_long": "Viga: Sõnum on liiga pikk (maks 10KB)",
+  "server_error": "Serveri viga: {message}",
+  "unknown_error": "Tundmatu viga",
+  "cant_establish_channel": "Ei saa kanalit luua",
+  "message_too_large": "Hoiatus: Sõnum on liiga suur, jäetakse vahele",
+  "connection_lost": "Ühendus katkes: ei saa uuenduskanalit luua",
+  "users_in_chat": "Kasutajad vestluses:",
+  "quit_hint": "Kirjutage 'q', et vestlusest väljuda",
+  "no_messages": "Sõnumeid veel pole. Alustage vestlust!",
+  "command_help": "Saadaolevad käsud:\n  /help          - Näita seda abiteadet\n  /nick <nimi>   - Muutke oma hüüdnime\n  /clear         - Tühjenda vestlus (kliendi pool)\n  /quit          - Ühendage vestlusest lahti\n  /room <id>     - Lülituge teise ruumi",
+  "command_nick_changed": "Hüüdnimi muudetud: {name}",
+  "command_nick_usage": "Kasutamine: /nick <nimi>",
+  "command_room_switched": "Lülitudud ruumi: {room_id}",
+  "command_room_usage": "Kasutamine: /room <room_id>",
+  "command_quit": "Ühenduse katkestamine...",
+  "rate_limit_exceeded": "Kiiruse piirang ületatud. Palun aeglustage.",
+  "error_processing": "Teie sõnumi töötlemisel ilmnes viga"
+}
+

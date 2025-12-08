@@ -84,6 +84,10 @@ async def _handle_command(command: str, user_key: str, username: str, ws: Websoc
     cmd = parts[0].lower()
     args = parts[1] if len(parts) > 1 else ""
     
+    # Get client language from request (default to English)
+    # Note: Language is client-side, so we use English for server responses
+    # Client will translate server responses using its own translation system
+    
     if cmd == "/help":
         help_text = """
 Available commands:

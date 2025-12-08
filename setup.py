@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="cmd-chat",
-    version="3.0.0",
+    version="3.1.0",
     author="VoxHash Technologies",
     author_email="contact@voxhash.dev",
     # Use find_packages to correctly discover package names

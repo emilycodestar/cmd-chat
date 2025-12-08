@@ -1,0 +1,24 @@
+{
+  "input_prompt": "Zure mezua: ",
+  "reconnecting": "⏳ Berriro konektatzen...",
+  "reconnected": "✅ Arrakastaz berriro konektatuta",
+  "connection_failed": "Ezin da {path} konektatu: {error}",
+  "message_too_long": "Errorea: Mezua luzeegia da (gehienez 10KB)",
+  "server_error": "Zerbitzari errorea: {message}",
+  "unknown_error": "Errore ezezaguna",
+  "cant_establish_channel": "Ezin da kanala ezarri",
+  "message_too_large": "Abisua: Mezua handiegia da, saltatzen",
+  "connection_lost": "Konexioa galdu da: ezin da eguneratze kanala ezarri",
+  "users_in_chat": "Txateko erabiltzaileak:",
+  "quit_hint": "Idatzi 'q' txatetik irteteko",
+  "no_messages": "Oraindik ez dago mezuik. Hasi elkarrizketa!",
+  "command_help": "Komando erabilgarriak:\n  /help          - Erakutsi laguntza mezu hau\n  /nick <izena>  - Aldatu zure goitizena\n  /clear         - Garbitu txata (bezero aldean)\n  /quit          - Deskonektatu txatetik\n  /room <id>     - Aldatu beste gela batera",
+  "command_nick_changed": "Goitizena aldatuta: {name}",
+  "command_nick_usage": "Erabilera: /nick <izena>",
+  "command_room_switched": "Gelara aldatu da: {room_id}",
+  "command_room_usage": "Erabilera: /room <room_id>",
+  "command_quit": "Deskonektatzen...",
+  "rate_limit_exceeded": "Abiadura muga gainditu da. Mesedez, moteldu.",
+  "error_processing": "Errore bat gertatu da zure mezua prozesatzean"
+}
+

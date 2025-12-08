@@ -21,8 +21,14 @@ async def run_client(
     token: str | None = None,
     use_ssl: bool = False,
     room_id: str = "default",
-    renderer_mode: str | None = None
+    renderer_mode: str | None = None,
+    language: str | None = None
 ) -> None:
+    # Set language environment variable if provided
+    if language:
+        import os
+        os.environ["CMD_CHAT_LANGUAGE"] = language
+    
     Client(
         server=server,
         port=port,
@@ -55,6 +61,7 @@ async def run() -> None:
     connect_p.add_argument('--ssl', action='store_true', help='Use SSL/TLS (wss:// instead of ws://)')
     connect_p.add_argument('--room', '-r', default='default', help='Room ID to join (default: default)')
     connect_p.add_argument('--renderer', choices=['rich', 'minimal', 'json'], help='Renderer mode (rich, minimal, json)')
+    connect_p.add_argument('--language', '-l', choices=['en', 'fr', 'es', 'zh', 'ja', 'de', 'ru', 'et', 'pt', 'ko', 'ca', 'eu', 'gl'], help='Language code (en, fr, es, zh, ja, de, ru, et, pt, ko, ca, eu, gl)')
 
     args = parser.parse_args()
 
@@ -69,7 +76,8 @@ async def run() -> None:
         password = args.password if hasattr(args, 'password') else None
         room_id = getattr(args, 'room', 'default')
         renderer_mode = getattr(args, 'renderer', None)
-        await run_client(args.username, args.ip_address, int(args.port), password, token, use_ssl, room_id, renderer_mode)
+        language = getattr(args, 'language', None)
+        await run_client(args.username, args.ip_address, int(args.port), password, token, use_ssl, room_id, renderer_mode, language)
 
 def main():
     asyncio.run(run())

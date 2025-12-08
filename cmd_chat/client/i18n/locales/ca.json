@@ -1,0 +1,24 @@
+{
+  "input_prompt": "El teu missatge: ",
+  "reconnecting": "⏳ Reconectant...",
+  "reconnected": "✅ Reconectat amb èxit",
+  "connection_failed": "No es pot connectar a {path}: {error}",
+  "message_too_long": "Error: Missatge massa llarg (màx 10KB)",
+  "server_error": "Error del servidor: {message}",
+  "unknown_error": "Error desconegut",
+  "cant_establish_channel": "No es pot establir el canal",
+  "message_too_large": "Advertència: Missatge massa gran, s'omet",
+  "connection_lost": "Connexió perduda: no es pot establir el canal d'actualització",
+  "users_in_chat": "Usuaris al xat:",
+  "quit_hint": "Escriu 'q' per sortir del xat",
+  "no_messages": "Encara no hi ha missatges. Comença la conversa!",
+  "command_help": "Comandaments disponibles:\n  /help          - Mostrar aquest missatge d'ajuda\n  /nick <nom>    - Canviar el teu sobrenom\n  /clear         - Netejar xat (costat del client)\n  /quit          - Desconnectar del xat\n  /room <id>     - Canviar a una sala diferent",
+  "command_nick_changed": "Sobrenom canviat a: {name}",
+  "command_nick_usage": "Ús: /nick <nom>",
+  "command_room_switched": "Canviat a la sala: {room_id}",
+  "command_room_usage": "Ús: /room <room_id>",
+  "command_quit": "Desconnectant...",
+  "rate_limit_exceeded": "Límit de velocitat excedit. Si us plau, redueix la velocitat.",
+  "error_processing": "S'ha produït un error en processar el teu missatge"
+}
+

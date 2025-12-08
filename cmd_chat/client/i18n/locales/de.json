@@ -1,0 +1,24 @@
+{
+  "input_prompt": "Ihre Nachricht: ",
+  "reconnecting": "⏳ Wiederverbinden...",
+  "reconnected": "✅ Erfolgreich wieder verbunden",
+  "connection_failed": "Kann nicht zu {path} verbinden: {error}",
+  "message_too_long": "Fehler: Nachricht zu lang (max 10KB)",
+  "server_error": "Serverfehler: {message}",
+  "unknown_error": "Unbekannter Fehler",
+  "cant_establish_channel": "Kanal kann nicht hergestellt werden",
+  "message_too_large": "Warnung: Nachricht zu groß, wird übersprungen",
+  "connection_lost": "Verbindung verloren: Update-Kanal kann nicht hergestellt werden",
+  "users_in_chat": "Benutzer im Chat:",
+  "quit_hint": "Schreiben Sie 'q', um den Chat zu verlassen",
+  "no_messages": "Noch keine Nachrichten. Beginnen Sie das Gespräch!",
+  "command_help": "Verfügbare Befehle:\n  /help          - Diese Hilfemeldung anzeigen\n  /nick <name>    - Ändern Sie Ihren Spitznamen\n  /clear         - Chat löschen (Client-seitig)\n  /quit          - Vom Chat trennen\n  /room <id>     - Zu einem anderen Raum wechseln",
+  "command_nick_changed": "Spitzname geändert zu: {name}",
+  "command_nick_usage": "Verwendung: /nick <name>",
+  "command_room_switched": "Zu Raum gewechselt: {room_id}",
+  "command_room_usage": "Verwendung: /room <room_id>",
+  "command_quit": "Trennen...",
+  "rate_limit_exceeded": "Rate-Limit überschritten. Bitte verlangsamen Sie.",
+  "error_processing": "Beim Verarbeiten Ihrer Nachricht ist ein Fehler aufgetreten"
+}
+

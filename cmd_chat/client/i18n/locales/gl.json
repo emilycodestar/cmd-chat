@@ -1,0 +1,24 @@
+{
+  "input_prompt": "A túa mensaxe: ",
+  "reconnecting": "⏳ Reconectando...",
+  "reconnected": "✅ Reconectado con éxito",
+  "connection_failed": "Non é posible conectar a {path}: {error}",
+  "message_too_long": "Erro: Mensaxe demasiado longa (máx 10KB)",
+  "server_error": "Erro do servidor: {message}",
+  "unknown_error": "Erro descoñecido",
+  "cant_establish_channel": "Non é posible establecer o canal",
+  "message_too_large": "Aviso: Mensaxe demasiado grande, omitindo",
+  "connection_lost": "Conexión perdida: non é posible establecer o canal de actualización",
+  "users_in_chat": "Usuarios no chat:",
+  "quit_hint": "Escribe 'q' para saír do chat",
+  "no_messages": "Aínda non hai mensaxes. Comeza a conversa!",
+  "command_help": "Comandos dispoñibles:\n  /help          - Mostrar esta mensaxe de axuda\n  /nick <nome>   - Cambiar o teu alcume\n  /clear         - Limpar chat (lado do cliente)\n  /quit          - Desconectar do chat\n  /room <id>     - Cambiar a unha sala diferente",
+  "command_nick_changed": "Alcume cambiado a: {name}",
+  "command_nick_usage": "Uso: /nick <nome>",
+  "command_room_switched": "Cambiado á sala: {room_id}",
+  "command_room_usage": "Uso: /room <room_id>",
+  "command_quit": "Desconectando...",
+  "rate_limit_exceeded": "Límite de velocidade superado. Por favor, reduce a velocidade.",
+  "error_processing": "Ocorreu un erro ao procesar a túa mensaxe"
+}
+

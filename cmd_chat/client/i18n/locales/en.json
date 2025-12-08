@@ -1,0 +1,24 @@
+{
+  "input_prompt": "You're message: ",
+  "reconnecting": "⏳ Reconnecting...",
+  "reconnected": "✅ Reconnected successfully",
+  "connection_failed": "Can't connect to {path}: {error}",
+  "message_too_long": "Error: Message too long (max 10KB)",
+  "server_error": "Server error: {message}",
+  "unknown_error": "Unknown error",
+  "cant_establish_channel": "Can't establish channel",
+  "message_too_large": "Warning: Message too large, skipping",
+  "connection_lost": "Connection lost: can't establish update channel",
+  "users_in_chat": "Users in chat:",
+  "quit_hint": "Write 'q' to quit from chat",
+  "no_messages": "No messages yet. Start the conversation!",
+  "command_help": "Available commands:\n  /help          - Show this help message\n  /nick <name>   - Change your nickname\n  /clear         - Clear chat (client-side)\n  /quit          - Disconnect from chat\n  /room <id>     - Switch to a different room",
+  "command_nick_changed": "Nickname changed to: {name}",
+  "command_nick_usage": "Usage: /nick <name>",
+  "command_room_switched": "Switched to room: {room_id}",
+  "command_room_usage": "Usage: /room <room_id>",
+  "command_quit": "Disconnecting...",
+  "rate_limit_exceeded": "Rate limit exceeded. Please slow down.",
+  "error_processing": "An error occurred processing your message"
+}
+

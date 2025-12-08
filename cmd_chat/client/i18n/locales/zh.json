@@ -1,0 +1,24 @@
+{
+  "input_prompt": "您的消息: ",
+  "reconnecting": "⏳ 重新连接中...",
+  "reconnected": "✅ 重新连接成功",
+  "connection_failed": "无法连接到 {path}: {error}",
+  "message_too_long": "错误: 消息太长（最大 10KB）",
+  "server_error": "服务器错误: {message}",
+  "unknown_error": "未知错误",
+  "cant_establish_channel": "无法建立通道",
+  "message_too_large": "警告: 消息太大，跳过",
+  "connection_lost": "连接丢失: 无法建立更新通道",
+  "users_in_chat": "聊天中的用户:",
+  "quit_hint": "输入 'q' 退出聊天",
+  "no_messages": "还没有消息。开始对话吧！",
+  "command_help": "可用命令:\n  /help          - 显示此帮助消息\n  /nick <名称>   - 更改您的昵称\n  /clear         - 清除聊天（客户端）\n  /quit          - 断开聊天连接\n  /room <id>     - 切换到不同的房间",
+  "command_nick_changed": "昵称已更改为: {name}",
+  "command_nick_usage": "用法: /nick <名称>",
+  "command_room_switched": "已切换到房间: {room_id}",
+  "command_room_usage": "用法: /room <room_id>",
+  "command_quit": "正在断开连接...",
+  "rate_limit_exceeded": "速率限制已超过。请放慢速度。",
+  "error_processing": "处理您的消息时发生错误"
+}
+

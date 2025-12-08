@@ -46,6 +46,7 @@ def main():
         "test_rooms",
         "test_commands",
         "test_delta_updates",
+        "test_i18n",
     ]
     
     results = []

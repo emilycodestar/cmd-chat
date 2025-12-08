@@ -8,6 +8,7 @@ from rich.console import Console
 from rich.table import Table
 from cmd_chat.client.core.abs.abs_renderer import ClientRenderer
 from cmd_chat.client.config import MESSAGES_TO_SHOW
+from cmd_chat.client.i18n.translations import t
 
 
 console = Console(width=75)
@@ -58,7 +59,7 @@ class RichClientRenderer(ClientRenderer):
         return username
 
     def print_chat(self, response) -> None:
-        console.print("Users in chat:", justify="left")
+        console.print(t("users_in_chat"), justify="left")
         table = Table(show_header=True, header_style="bold magenta")
         table.add_column("IP", style="dim", width=12)
         table.add_column("USERNAME")
@@ -68,11 +69,11 @@ class RichClientRenderer(ClientRenderer):
                 self.print_username(user.split(",")[1])
             )
         console.print(table)
-        console.print("Write 'q' to quit from chat", justify="left")
+        console.print(t("quit_hint"), justify="left")
 
         messages = response["messages"][-MESSAGES_TO_SHOW:]
         if not messages:
-            console.print("\nNo messages yet. Start the conversation!", justify="left")
+            console.print(f"\n{t('no_messages')}", justify="left")
             return
 
         console.print()

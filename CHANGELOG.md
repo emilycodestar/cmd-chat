@@ -5,6 +5,28 @@ All notable changes to the CMD CHAT project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2025-12-07
+
+### Added
+- **Internationalization (i18n)**: Complete translation system with 13 supported languages
+  - English (en), French (fr), Spanish (es), Chinese (zh), Japanese (ja)
+  - German (de), Russian (ru), Estonian (et), Portuguese (pt), Korean (ko)
+  - Catalan (ca), Basque (eu), Galician (gl)
+- **Language Selection**: CLI option `--language` to select interface language
+- **Environment Variable Support**: `CMD_CHAT_LANGUAGE` environment variable for language selection
+- **Translation Manager**: Centralized translation system with fallback to English
+- **Comprehensive Translations**: All UI strings translated across all languages
+
+### Changed
+- **Client UI**: All user-facing strings now use translation system
+- **CLI**: Added `--language` / `-l` option for language selection
+- **Configuration**: Updated .env.example with language configuration
+
+### Technical
+- **Translation Files**: JSON-based translation files in `cmd_chat/client/i18n/locales/`
+- **Translation Manager**: Automatic fallback to English for missing translations
+- **Key Validation**: All languages have identical translation keys
+
 ## [3.0.0] - 2025-12-07
 
 ### Added

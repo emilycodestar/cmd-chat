@@ -14,8 +14,10 @@ from cmd_chat.client.config import (
     RENDER_TIME, 
     MESSAGES_TO_SHOW, 
     ENABLE_LOCAL_HISTORY,
-    RENDERER_MODE
+    RENDERER_MODE,
+    LANGUAGE
 )
+from cmd_chat.client.i18n.translations import get_translator, t
 
 
 class Client(RSAService):
@@ -71,6 +73,11 @@ class Client(RSAService):
         })
         self.__stop_threads = False
         self.last_heartbeat = time.time()
+        
+        # Initialize translation manager
+        self.translator = get_translator()
+        if language := os.getenv("CMD_CHAT_LANGUAGE"):
+            self.translator.set_language(language)
 
     def _ws_full(self, path: str, room_id: str | None = None) -> str:
         """Build full WebSocket URL with authentication and room."""
@@ -96,12 +103,12 @@ class Client(RSAService):
             if attempt > 0 and show_status and not self.reconnecting:
                 self.reconnecting = True
                 if RENDERER_MODE != "json":
-                    print("⏳ Reconnecting...", end="\r")
+                    print(t("reconnecting"), end="\r")
             
             try:
                 ws = create_connection(self._ws_full(path, self.room_id))
                 if self.reconnecting and RENDERER_MODE != "json":
-                    print("✅ Reconnected successfully" + " " * 20)
+                    print(t("reconnected") + " " * 20)
                     self.reconnecting = False
                 return ws
             except Exception as exc:
@@ -110,7 +117,7 @@ class Client(RSAService):
         
         if self.reconnecting:
             self.reconnecting = False
-        print(f"Can't connect to {path}: {last_exc}")
+        print(t("connection_failed").format(path=path, error=str(last_exc)))
         raise last_exc
 
     def _handle_command(self, command: str, ws) -> bool:
@@ -154,7 +161,7 @@ class Client(RSAService):
         try:
             while not self.__stop_threads:
                 try:
-                    user_input = input("You're message: " if RENDERER_MODE != "json" else "")
+                    user_input = input(t("input_prompt") if RENDERER_MODE != "json" else "")
                     
                     if user_input.strip() == "":
                         continue
@@ -191,14 +198,30 @@ class Client(RSAService):
                                     self.renderer.clear_console()
                                 
                                 if RENDERER_MODE != "json":
-                                    print(msg.get("message", ""))
+                                    # Translate command messages
+                                    cmd_msg = msg.get("message", "")
+                                    # Map command responses to translation keys
+                                    if cmd == "nick" and "changed to:" in cmd_msg:
+                                        name = cmd_msg.split(":")[-1].strip()
+                                        cmd_msg = t("command_nick_changed").format(name=name)
+                                    elif cmd == "room" and "Switched to room:" in cmd_msg:
+                                        room_id = cmd_msg.split(":")[-1].strip()
+                                        cmd_msg = t("command_room_switched").format(room_id=room_id)
+                                    elif cmd == "error" and "Usage:" in cmd_msg:
+                                        if "/nick" in cmd_msg:
+                                            cmd_msg = t("command_nick_usage")
+                                        elif "/room" in cmd_msg:
+                                            cmd_msg = t("command_room_usage")
+                                    elif cmd == "quit":
+                                        cmd_msg = t("command_quit")
+                                    print(cmd_msg)
                         except Exception:
                             pass
                         continue
                     
                     # Message length validation (max 10KB)
                     if len(user_input) > 10_240:
-                        print("Error: Message too long (max 10KB)")
+                        print(t("message_too_long"))
                         continue
                     
                     message = f'{self.username}: {user_input}'
@@ -232,7 +255,8 @@ class Client(RSAService):
                         # Handle error messages
                         elif msg.get("status") == "error":
                             if RENDERER_MODE != "json":
-                                print(f"Server error: {msg.get('message', 'Unknown error')}")
+                                error_msg = msg.get('message', t("unknown_error"))
+                                print(t("server_error").format(message=error_msg))
                     except Exception:
                         pass
                 except (WebSocketConnectionClosedException, ConnectionResetError, ConnectionAbortedError, OSError):
@@ -246,7 +270,7 @@ class Client(RSAService):
                         self.last_heartbeat = time.time()
                         continue
                     except Exception:
-                        print("Can't establish channel")
+                        print(t("cant_establish_channel"))
                         self.__stop_threads = True
                         break
                 except KeyboardInterrupt:
@@ -277,7 +301,7 @@ class Client(RSAService):
                     # Payload size validation (max 1MB)
                     if len(raw) > 1_048_576:
                         if RENDERER_MODE != "json":
-                            print("Warning: Message too large, skipping")
+                            print(t("message_too_large"))
                         continue
                     
                     response = json.loads(raw)
@@ -330,7 +354,7 @@ class Client(RSAService):
                         continue
                     except Exception:
                         if RENDERER_MODE != "json":
-                            print("Connection lost: can't establish update channel")
+                            print(t("connection_lost"))
                         self.__stop_threads = True
                         break
                 except KeyboardInterrupt:

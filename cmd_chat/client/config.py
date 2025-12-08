@@ -12,3 +12,4 @@ RENDER_TIME = float(os.getenv("CLIENT_RENDER_TIME", "0.1"))
 MESSAGES_TO_SHOW = int(os.getenv("CLIENT_MESSAGES_TO_SHOW", "10"))
 ENABLE_LOCAL_HISTORY = os.getenv("ENABLE_LOCAL_HISTORY", "false").lower() == "true"
 RENDERER_MODE = os.getenv("RENDERER_MODE", "rich")  # rich, minimal, json
+LANGUAGE = os.getenv("CMD_CHAT_LANGUAGE", "en")  # Language code (en, fr, es, etc.)

@@ -3,6 +3,7 @@ import platform
 
 from cmd_chat.client.core.abs.abs_renderer import ClientRenderer
 from cmd_chat.client.config import COLORS
+from cmd_chat.client.i18n.translations import t
 
 from colorama import init
 
@@ -55,7 +56,7 @@ class DefaultClientRenderer(ClientRenderer):
                 for user in response["users_in_chat"]:
                     print(self.print_ip(user.split(",")[0]))
                     print(self.print_username(user.split(",")[1]))
-                print("Write 'q' to quit from chat")
+                print(t("quit_hint"))
                 print(f"\n{self.print_message(actual_message)}")
             else:
                 print(f"{self.print_message(actual_message)}")

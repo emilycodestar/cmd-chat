@@ -1,0 +1,24 @@
+{
+  "input_prompt": "メッセージ: ",
+  "reconnecting": "⏳ 再接続中...",
+  "reconnected": "✅ 正常に再接続されました",
+  "connection_failed": "{path} に接続できません: {error}",
+  "message_too_long": "エラー: メッセージが長すぎます（最大 10KB）",
+  "server_error": "サーバーエラー: {message}",
+  "unknown_error": "不明なエラー",
+  "cant_establish_channel": "チャネルを確立できません",
+  "message_too_large": "警告: メッセージが大きすぎます。スキップします",
+  "connection_lost": "接続が失われました: 更新チャネルを確立できません",
+  "users_in_chat": "チャット中のユーザー:",
+  "quit_hint": "終了するには 'q' と入力してください",
+  "no_messages": "まだメッセージがありません。会話を始めましょう！",
+  "command_help": "利用可能なコマンド:\n  /help          - このヘルプメッセージを表示\n  /nick <名前>   - ニックネームを変更\n  /clear         - チャットをクリア（クライアント側）\n  /quit          - チャットから切断\n  /room <id>     - 別のルームに切り替え",
+  "command_nick_changed": "ニックネームを変更しました: {name}",
+  "command_nick_usage": "使用方法: /nick <名前>",
+  "command_room_switched": "ルームに切り替えました: {room_id}",
+  "command_room_usage": "使用方法: /room <room_id>",
+  "command_quit": "切断中...",
+  "rate_limit_exceeded": "レート制限を超えました。速度を落としてください。",
+  "error_processing": "メッセージの処理中にエラーが発生しました"
+}
+

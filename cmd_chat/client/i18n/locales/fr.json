@@ -1,0 +1,24 @@
+{
+  "input_prompt": "Votre message: ",
+  "reconnecting": "⏳ Reconnexion...",
+  "reconnected": "✅ Reconnecté avec succès",
+  "connection_failed": "Impossible de se connecter à {path}: {error}",
+  "message_too_long": "Erreur: Message trop long (max 10KB)",
+  "server_error": "Erreur serveur: {message}",
+  "unknown_error": "Erreur inconnue",
+  "cant_establish_channel": "Impossible d'établir le canal",
+  "message_too_large": "Avertissement: Message trop volumineux, ignoré",
+  "connection_lost": "Connexion perdue: impossible d'établir le canal de mise à jour",
+  "users_in_chat": "Utilisateurs dans le chat:",
+  "quit_hint": "Tapez 'q' pour quitter le chat",
+  "no_messages": "Aucun message pour le moment. Commencez la conversation!",
+  "command_help": "Commandes disponibles:\n  /help          - Afficher ce message d'aide\n  /nick <nom>    - Changer votre pseudonyme\n  /clear         - Effacer le chat (côté client)\n  /quit          - Se déconnecter du chat\n  /room <id>     - Changer de salle",
+  "command_nick_changed": "Pseudonyme changé en: {name}",
+  "command_nick_usage": "Utilisation: /nick <nom>",
+  "command_room_switched": "Changement de salle: {room_id}",
+  "command_room_usage": "Utilisation: /room <room_id>",
+  "command_quit": "Déconnexion...",
+  "rate_limit_exceeded": "Limite de débit dépassée. Veuillez ralentir.",
+  "error_processing": "Une erreur s'est produite lors du traitement de votre message"
+}
+

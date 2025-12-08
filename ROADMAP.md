@@ -27,7 +27,7 @@
 - [x] Customizable renderers (rich, minimal, json mode). *(Completed v3.0.0)*
 - [x] Quiet reconnection status indicator. *(Completed v3.0.0)*
 - [x] Configurable message buffer length. *(Completed v3.0.0)*
-- [ ] Add i18n translation system to offer multiple language options on CLI
+- [x] Add i18n translation system to offer multiple language options on CLI. *(Completed v3.1.0 - 13 languages)*
 
 ### 5. File & media
 
@@ -50,6 +50,15 @@
 - [x] Configurable retention (in-memory only vs file-based). *(Completed - Memory-only by default)*
 
 ---
+
+## 📝 Completed Features (v3.1.0)
+
+**Internationalization:**
+- ✅ Complete i18n translation system
+- ✅ 13 supported languages (en, fr, es, zh, ja, de, ru, et, pt, ko, ca, eu, gl)
+- ✅ CLI language selection (--language option)
+- ✅ Environment variable support (CMD_CHAT_LANGUAGE)
+- ✅ Automatic fallback to English
 
 ## 📝 Completed Features (v3.0.0)
 
