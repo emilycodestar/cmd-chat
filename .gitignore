@@ -1,15 +1,70 @@
-/__pycache__/
-/i-try/
-/venv/
-test_rsa.py
-.gitignore
-commiter.py
-__pycache__
-*.pyc
-.idea
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# SSL Certificates
 *.pem
-__pycache__
+*.key
+*.crt
+*.cert
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# Project specific
+/i-try/
+test_rsa.py
+commiter.py
 cmd_chat.egg-info
-build
-dist
 secured_console_chat.egg-info
+
+# Logs
+*.log
+logs/
+
+# OS
+Thumbs.db
+.DS_Store

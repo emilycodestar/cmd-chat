@@ -1,9 +1,8 @@
-sanic
-requests
-rsa
-cryptography
-colorama
-pydantic
-websocket-client
-flask 
-rich
+sanic>=23.12.0
+requests>=2.31.0
+rsa>=4.9
+cryptography>=41.0.0
+colorama>=0.4.6
+pydantic>=2.5.0
+websocket-client>=1.6.0
+rich>=13.7.0

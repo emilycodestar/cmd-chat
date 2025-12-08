@@ -41,6 +41,7 @@ class Client(RSAService, RichClientRenderer):
             "username": self.username
         })
         self.__stop_threads = False
+        self.last_heartbeat = time.time()
 
     def _ws_full(self, path: str) -> str:
         """Constrói URL WebSocket completa com autenticação"""
@@ -92,6 +93,26 @@ class Client(RSAService, RichClientRenderer):
                         "username": self.username
                     })
                     ws.send(socket_message)
+                    self.last_heartbeat = time.time()
+                    
+                    # Check for response (including heartbeats)
+                    try:
+                        ws.settimeout(0.5)
+                        raw = ws.recv()
+                        if isinstance(raw, bytes):
+                            raw = raw.decode("utf-8")
+                        msg = json.loads(raw)
+                        
+                        # Handle heartbeat ping
+                        if msg.get("type") == "ping":
+                            ws.send(json.dumps({"type": "pong", "timestamp": msg.get("timestamp")}))
+                            self.last_heartbeat = time.time()
+                        # Handle error messages
+                        elif msg.get("status") == "error":
+                            print(f"Server error: {msg.get('message', 'Unknown error')}")
+                    except Exception:
+                        # Timeout or no message - that's OK
+                        pass
                 except (WebSocketConnectionClosedException, ConnectionResetError, ConnectionAbortedError, OSError):
                     try:
                         if ws:
@@ -100,6 +121,7 @@ class Client(RSAService, RichClientRenderer):
                             except Exception:
                                 pass
                         ws = self._connect_ws("/talk")
+                        self.last_heartbeat = time.time()
                         continue
                     except Exception:
                         print("Can't establish channel")
@@ -137,6 +159,12 @@ class Client(RSAService, RichClientRenderer):
                     
                     response = json.loads(raw)
                     
+                    # Handle heartbeat ping
+                    if response.get("type") == "ping":
+                        ws.send(json.dumps({"type": "pong", "timestamp": response.get("timestamp")}))
+                        self.last_heartbeat = time.time()
+                        continue
+                    
                     # Sempre atualizar se houver mudanças
                     if last_try != response:
                         last_try = response
@@ -144,6 +172,7 @@ class Client(RSAService, RichClientRenderer):
                         self.clear_console()
                         if len(response.get("messages", [])) > 0:
                             self.print_chat(response=last_try)
+                    self.last_heartbeat = time.time()
                 except (WebSocketConnectionClosedException, ConnectionResetError, ConnectionAbortedError, OSError):
                     try:
                         if ws:
@@ -152,6 +181,7 @@ class Client(RSAService, RichClientRenderer):
                             except Exception:
                                 pass
                         ws = self._connect_ws("/update")
+                        self.last_heartbeat = time.time()
                         continue
                     except Exception:
                         print("Connection lost: can't establish update channel")

@@ -27,6 +27,7 @@
 - [ ] Customizable renderers (rich, minimal, json mode).
 - [ ] Quiet reconnection status indicator.
 - [ ] Configurable message buffer length.
+- [ ] Add i18n translation system to offer multiple language options on CLI
 
 ### 5. File & media
 

@@ -1,5 +1,8 @@
 import asyncio
+import json
 import rsa
+import time
+from collections import defaultdict
 from cryptography.fernet import Fernet
 from functools import partial
 from sanic.worker.loader import AppLoader
@@ -25,6 +28,14 @@ CLIENT_KEYS: dict[str, bytes] = {}
 SHARED_ROOM_KEY = Fernet.generate_key()
 # Authentication token manager
 TOKEN_MANAGER = TokenManager()
+# Rate limiting: {user_key: [timestamps]}
+MESSAGE_RATE_LIMIT: dict[str, list[float]] = defaultdict(list)
+# Rate limit configuration: max 10 messages per 60 seconds
+MAX_MESSAGES_PER_WINDOW = 10
+RATE_LIMIT_WINDOW = 60.0
+# Heartbeat configuration
+HEARTBEAT_INTERVAL = 30.0
+HEARTBEAT_TIMEOUT = 60.0
 
 
 def _check_auth(request: Request, expected_password: str | None, token_manager: TokenManager) -> tuple[bool, str | None]:
@@ -47,6 +58,21 @@ def _check_auth(request: Request, expected_password: str | None, token_manager: 
 def _get_str_arg(request: Request, name: str) -> str | None:
     return request.form.get(name) or request.args.get(name)
 
+def _check_rate_limit(user_key: str) -> bool:
+    """Check if user is within rate limit. Returns True if allowed."""
+    now = time.time()
+    # Clean old timestamps outside the window
+    MESSAGE_RATE_LIMIT[user_key] = [
+        ts for ts in MESSAGE_RATE_LIMIT[user_key]
+        if now - ts < RATE_LIMIT_WINDOW
+    ]
+    # Check if limit exceeded
+    if len(MESSAGE_RATE_LIMIT[user_key]) >= MAX_MESSAGES_PER_WINDOW:
+        return False
+    # Add current timestamp
+    MESSAGE_RATE_LIMIT[user_key].append(now)
+    return True
+
 def attach_endpoints(app: Sanic):
     @app.websocket("/talk")
     async def talk_ws_view(request: Request, ws: Websocket) -> HTTPResponse:
@@ -54,16 +80,69 @@ def attach_endpoints(app: Sanic):
         if not is_valid:
             await ws.close(code=4001, reason="unauthorized")
             return
-        while True:
-            serialized_message: dict = await _get_bytes_and_serialize(ws)
-            await _check_ws_for_close_status(serialized_message, ws)
-            text = serialized_message.get("text")
-            if text is None:
-                continue
-            new_message = await _generate_new_message(text)
-            MESSAGES_MEMORY_DB.append(new_message)
-            await ws.send(str({"status": "ok"}))
-            await asyncio.sleep(0.01)
+        
+        username = username or _get_str_arg(request, "username") or "unknown"
+        user_key = f"{request.ip}, {username}"
+        last_heartbeat = time.time()
+        
+        async def send_heartbeat():
+            """Send periodic heartbeat to keep connection alive."""
+            while True:
+                await asyncio.sleep(HEARTBEAT_INTERVAL)
+                try:
+                    await ws.send(json.dumps({"type": "ping", "timestamp": time.time()}))
+                except Exception:
+                    break
+        
+        # Start heartbeat task
+        heartbeat_task = asyncio.create_task(send_heartbeat())
+        
+        try:
+            while True:
+                try:
+                    # Check for timeout
+                    if time.time() - last_heartbeat > HEARTBEAT_TIMEOUT:
+                        await ws.close(code=4000, reason="timeout")
+                        break
+                    
+                    serialized_message: dict = await _get_bytes_and_serialize(ws)
+                    
+                    # Handle heartbeat pong
+                    if serialized_message.get("type") == "pong":
+                        last_heartbeat = time.time()
+                        continue
+                    
+                    await _check_ws_for_close_status(serialized_message, ws)
+                    text = serialized_message.get("text")
+                    if text is None:
+                        continue
+                    
+                    # Rate limiting check
+                    if not _check_rate_limit(user_key):
+                        await ws.send(json.dumps({
+                            "status": "error",
+                            "message": "Rate limit exceeded. Please slow down."
+                        }))
+                        continue
+                    
+                    new_message = await _generate_new_message(text)
+                    MESSAGES_MEMORY_DB.append(new_message)
+                    await ws.send(json.dumps({"status": "ok"}))
+                    last_heartbeat = time.time()
+                    await asyncio.sleep(0.01)
+                except Exception as e:
+                    # Clean error handling - don't expose stack traces
+                    await ws.send(json.dumps({
+                        "status": "error",
+                        "message": "An error occurred processing your message"
+                    }))
+                    break
+        finally:
+            heartbeat_task.cancel()
+            try:
+                await heartbeat_task
+            except asyncio.CancelledError:
+                pass
 
     @app.websocket("/update")
     async def update_ws_view(request: Request, ws: Websocket) -> HTTPResponse:
@@ -71,10 +150,55 @@ def attach_endpoints(app: Sanic):
         if not is_valid:
             await ws.close(code=4001, reason="unauthorized")
             return
-        while True:
-            payload = await _generate_update_payload(MESSAGES_MEMORY_DB, USERS)
-            await ws.send(payload.encode())
-            await asyncio.sleep(0.05)
+        
+        last_heartbeat = time.time()
+        
+        async def send_heartbeat():
+            """Send periodic heartbeat to keep connection alive."""
+            while True:
+                await asyncio.sleep(HEARTBEAT_INTERVAL)
+                try:
+                    await ws.send(json.dumps({"type": "ping", "timestamp": time.time()}))
+                except Exception:
+                    break
+        
+        # Start heartbeat task
+        heartbeat_task = asyncio.create_task(send_heartbeat())
+        
+        try:
+            while True:
+                try:
+                    # Check for timeout
+                    if time.time() - last_heartbeat > HEARTBEAT_TIMEOUT:
+                        await ws.close(code=4000, reason="timeout")
+                        break
+                    
+                    # Try to receive heartbeat pong (non-blocking check)
+                    try:
+                        raw = await asyncio.wait_for(ws.recv(), timeout=0.1)
+                        if isinstance(raw, bytes):
+                            raw = raw.decode("utf-8")
+                        msg = json.loads(raw)
+                        if msg.get("type") == "pong":
+                            last_heartbeat = time.time()
+                            continue
+                    except asyncio.TimeoutError:
+                        pass
+                    except Exception:
+                        pass
+                    
+                    payload = await _generate_update_payload(MESSAGES_MEMORY_DB, USERS)
+                    await ws.send(payload.encode())
+                    await asyncio.sleep(0.05)
+                except Exception:
+                    # Clean error handling
+                    break
+        finally:
+            heartbeat_task.cancel()
+            try:
+                await heartbeat_task
+            except asyncio.CancelledError:
+                pass
 
     @app.route('/get_key', methods=['GET', 'POST'])
     async def get_key_view(request: Request) -> HTTPResponse:
@@ -105,8 +229,9 @@ def attach_endpoints(app: Sanic):
 
         try:
             public_key = rsa.PublicKey.load_pkcs1(pubkey_bytes)
-        except Exception as e:
-            return response.text(f"bad pubkey: {e}", status=400)
+        except Exception:
+            # Clean error handling - don't expose exception details
+            return response.text("invalid public key format", status=400)
 
         username = _get_str_arg(request, "username") or "unknown"
         user_key = f"{request.ip}, {username}"
