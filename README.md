@@ -23,7 +23,7 @@ No logs, no traces, no compromise.
 - **Clean error handling** - No stack traces exposed to clients
 - **Multiple rooms** - Support for isolated chat rooms/channels
 - **Chat commands** - Built-in commands (/nick, /clear, /help, /quit, /room, /rooms)
-- **Per-client keys** - Each client gets a unique encryption key
+- **Room-based keys** - All clients in the same room share the same encryption key for message sharing
 - **Delta updates** - Only new messages sent (not full history)
 - **Customizable renderers** - Rich, minimal, or JSON output modes
 - **Local history** - Optional encrypted message history
