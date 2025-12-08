@@ -215,8 +215,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👥 Authors
 
-- **VoxHash Technologies** - [GitHub](https://github.com/VoxHash)
-
+- [VoxHash](https://github.com/VoxHash)
+- [Emily 💞](emilycodestar)
+- [himath rajapaksha](anorak999)
+- [Sousa](ESousa97)
+- [Ahmad Allahverdiyev](hmd37)
 ---
 
 ## 🙏 Acknowledgments

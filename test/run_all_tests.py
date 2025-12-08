@@ -43,6 +43,9 @@ def main():
         "test_json_parsing",
         "test_heartbeat",
         "test_rate_limiting",
+        "test_rooms",
+        "test_commands",
+        "test_delta_updates",
     ]
     
     results = []

@@ -7,26 +7,26 @@
 - [x] Clean error handling (no leaking stack traces to clients). *(Completed v2.0.0)*
 - [x] Limit message size and frequency (basic anti-spam). *(Completed v2.0.0 - 10 messages per 60 seconds)*
 
-### 2. Security improvements
+### 2. Security improvements ✅
 
-- [ ] Per-client symmetric keys instead of one global key.
+- [x] Per-client symmetric keys instead of one global key. *(Completed v3.0.0)*
 - [x] Upgrade RSA 512 → 2048 (or curve25519 ECDH + HKDF). *(Completed - Already using RSA 2048-bit)*
 - [x] Replace shared password with invite tokens or session-based bearer tokens. *(Completed v2.0.0 - Token system implemented)*
-- [ ] Force WSS (TLS) for production. *(SSL/TLS support available, but not enforced)*
+- [x] Force WSS (TLS) for production. *(Completed v3.0.0 - --force-ssl option)*
 
-### 3. Chat features
+### 3. Chat features ✅
 
-- [ ] Multiple rooms (room_id support).
-- [ ] Commands (`/nick`, `/clear`, `/help`, `/quit`).
-- [ ] Message timestamps + sequence numbers.
-- [ ] Delta updates (only send new messages instead of full history).
+- [x] Multiple rooms (room_id support). *(Completed v3.0.0)*
+- [x] Commands (`/nick`, `/clear`, `/help`, `/quit`, `/room`). *(Completed v3.0.0)*
+- [x] Message timestamps + sequence numbers. *(Completed v3.0.0)*
+- [x] Delta updates (only send new messages instead of full history). *(Completed v3.0.0)*
 
 ### 4. UX / Client
 
-- [ ] Local encrypted history (optional).
-- [ ] Customizable renderers (rich, minimal, json mode).
-- [ ] Quiet reconnection status indicator.
-- [ ] Configurable message buffer length.
+- [x] Local encrypted history (optional). *(Completed v3.0.0)*
+- [x] Customizable renderers (rich, minimal, json mode). *(Completed v3.0.0)*
+- [x] Quiet reconnection status indicator. *(Completed v3.0.0)*
+- [x] Configurable message buffer length. *(Completed v3.0.0)*
 - [ ] Add i18n translation system to offer multiple language options on CLI
 
 ### 5. File & media
@@ -40,6 +40,7 @@
 - [ ] Add uvloop + multiple Sanic workers.
 - [ ] Graceful shutdown & restart.
 - [ ] Systemd service unit for server.
+- [ ] Create PyPI package
 - [x] CI/CD workflows (GitHub Actions). *(Completed v2.0.0)*
 
 ### 7. Privacy & audit
@@ -49,6 +50,25 @@
 - [x] Configurable retention (in-memory only vs file-based). *(Completed - Memory-only by default)*
 
 ---
+
+## 📝 Completed Features (v3.0.0)
+
+**Security:**
+- ✅ Per-client symmetric keys (unique key per client)
+- ✅ Force SSL/TLS option for production
+- ✅ Room-based key management
+
+**Chat Features:**
+- ✅ Multiple rooms/channels support
+- ✅ Chat commands (/nick, /clear, /help, /quit, /room)
+- ✅ Message timestamps and sequence numbers
+- ✅ Delta updates (only new messages)
+
+**UX/Client:**
+- ✅ Local encrypted history (optional)
+- ✅ Customizable renderers (rich, minimal, json)
+- ✅ Quiet reconnection status indicator
+- ✅ Configurable message buffer length
 
 ## 📝 Completed Features (v2.0.0)
 

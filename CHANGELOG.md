@@ -5,6 +5,39 @@ All notable changes to the CMD CHAT project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2025-12-07
+
+### Added
+- **Per-Client Symmetric Keys**: Each client now gets a unique symmetric encryption key instead of a shared global key
+- **Multiple Rooms Support**: Full room/channel support with room_id parameter for isolated chat spaces
+- **Chat Commands**: Command system with `/nick`, `/clear`, `/help`, `/quit`, and `/room` commands
+- **Message Timestamps**: All messages now include timestamps for chronological ordering
+- **Sequence Numbers**: Messages include sequence numbers for reliable delta updates
+- **Delta Updates**: Only new messages are sent to clients (not full history) for better performance
+- **Local Encrypted History**: Optional local message history storage (encrypted, configurable)
+- **Customizable Renderers**: Three renderer modes - rich (default), minimal, and json (for automation)
+- **Quiet Reconnection Status**: Subtle reconnection indicators that don't clutter the UI
+- **Configurable Message Buffer**: Adjustable message buffer length via environment variables
+- **Force SSL/TLS**: Option to enforce WSS (TLS) connections in production environments
+- **Room-Based Key Management**: Each room has its own encryption key for better security isolation
+
+### Changed
+- **Key Exchange**: Now generates per-client keys instead of shared room keys
+- **Message Model**: Enhanced with timestamp, sequence, room_id, and username fields
+- **Update Payload**: Supports delta updates with last_sequence parameter
+- **Client Architecture**: Refactored to support multiple renderer modes and room switching
+- **Server Endpoints**: Enhanced to support room_id and sequence-based updates
+
+### Fixed
+- **Security**: Per-client keys prevent cross-client message decryption
+- **Performance**: Delta updates reduce bandwidth and improve responsiveness
+- **User Experience**: Better command handling and room management
+
+### Technical
+- **Server**: Room management, per-client key generation, command processing
+- **Client**: Renderer abstraction, local history, delta update tracking
+- **CLI**: Added --room, --renderer, and --force-ssl options
+
 ## [2.0.0] - 2025-12-07
 
 ### Added

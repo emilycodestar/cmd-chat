@@ -14,7 +14,8 @@ from cmd_chat.server.services import (
     _get_bytes_and_serialize,
     _check_ws_for_close_status,
     _generate_new_message,
-    _generate_update_payload
+    _generate_update_payload,
+    _generate_full_update_payload
 )
 
 app = Sanic("app")
@@ -24,8 +25,12 @@ MESSAGES_MEMORY_DB: list[Message] = []
 USERS: dict[str, str] = {}
 # Individual symmetric keys per client: {user_key: symmetric_key}
 CLIENT_KEYS: dict[str, bytes] = {}
-# Shared key for the default chat room (everyone can decrypt)
-SHARED_ROOM_KEY = Fernet.generate_key()
+# Room keys: {room_id: symmetric_key}
+ROOM_KEYS: dict[str, bytes] = {}
+# User room assignments: {user_key: room_id}
+USER_ROOMS: dict[str, str] = {}
+# User nicknames: {user_key: nickname}
+USER_NICKNAMES: dict[str, str] = {}
 # Authentication token manager
 TOKEN_MANAGER = TokenManager()
 # Rate limiting: {user_key: [timestamps]}
@@ -73,6 +78,82 @@ def _check_rate_limit(user_key: str) -> bool:
     MESSAGE_RATE_LIMIT[user_key].append(now)
     return True
 
+async def _handle_command(command: str, user_key: str, username: str, ws: Websocket) -> bool:
+    """Handle chat commands. Returns True if command was handled."""
+    parts = command.split(" ", 1)
+    cmd = parts[0].lower()
+    args = parts[1] if len(parts) > 1 else ""
+    
+    if cmd == "/help":
+        help_text = """
+Available commands:
+  /help          - Show this help message
+  /nick <name>   - Change your nickname
+  /clear         - Clear chat (client-side)
+  /quit          - Disconnect from chat
+  /room <id>     - Switch to a different room
+        """
+        await ws.send(json.dumps({
+            "type": "command",
+            "command": "help",
+            "message": help_text
+        }))
+        return True
+    
+    elif cmd == "/nick":
+        if args:
+            USER_NICKNAMES[user_key] = args.strip()
+            USERS[user_key] = args.strip()
+            await ws.send(json.dumps({
+                "type": "command",
+                "command": "nick",
+                "message": f"Nickname changed to: {args.strip()}"
+            }))
+        else:
+            await ws.send(json.dumps({
+                "type": "command",
+                "command": "error",
+                "message": "Usage: /nick <name>"
+            }))
+        return True
+    
+    elif cmd == "/room":
+        if args:
+            room_id = args.strip()
+            if room_id not in ROOM_KEYS:
+                ROOM_KEYS[room_id] = Fernet.generate_key()
+            USER_ROOMS[user_key] = room_id
+            await ws.send(json.dumps({
+                "type": "command",
+                "command": "room",
+                "message": f"Switched to room: {room_id}",
+                "room_id": room_id
+            }))
+        else:
+            await ws.send(json.dumps({
+                "type": "command",
+                "command": "error",
+                "message": "Usage: /room <room_id>"
+            }))
+        return True
+    
+    elif cmd == "/clear":
+        await ws.send(json.dumps({
+            "type": "command",
+            "command": "clear"
+        }))
+        return True
+    
+    elif cmd == "/quit":
+        await ws.send(json.dumps({
+            "type": "command",
+            "command": "quit"
+        }))
+        await ws.close()
+        return True
+    
+    return False
+
 def attach_endpoints(app: Sanic):
     @app.websocket("/talk")
     async def talk_ws_view(request: Request, ws: Websocket) -> HTTPResponse:
@@ -113,7 +194,14 @@ def attach_endpoints(app: Sanic):
                         continue
                     
                     await _check_ws_for_close_status(serialized_message, ws)
+                    
+                    # Handle commands
                     text = serialized_message.get("text")
+                    if text and text.startswith("/"):
+                        command_result = await _handle_command(text, user_key, username, ws)
+                        if command_result:
+                            continue
+                    
                     if text is None:
                         continue
                     
@@ -125,7 +213,9 @@ def attach_endpoints(app: Sanic):
                         }))
                         continue
                     
-                    new_message = await _generate_new_message(text)
+                    # Get user's room
+                    room_id = USER_ROOMS.get(user_key, "default")
+                    new_message = await _generate_new_message(text, username, room_id)
                     MESSAGES_MEMORY_DB.append(new_message)
                     await ws.send(json.dumps({"status": "ok"}))
                     last_heartbeat = time.time()
@@ -187,7 +277,16 @@ def attach_endpoints(app: Sanic):
                     except Exception:
                         pass
                     
-                    payload = await _generate_update_payload(MESSAGES_MEMORY_DB, USERS)
+                    # Get room_id from request or use default
+                    room_id = _get_str_arg(request, "room_id") or "default"
+                    last_sequence = int(_get_str_arg(request, "last_sequence") or 0)
+                    
+                    # Use delta updates if last_sequence provided, otherwise full update
+                    if last_sequence > 0:
+                        payload = await _generate_update_payload(MESSAGES_MEMORY_DB, USERS, room_id, last_sequence)
+                    else:
+                        payload = await _generate_full_update_payload(MESSAGES_MEMORY_DB, USERS, room_id)
+                    
                     await ws.send(payload.encode())
                     await asyncio.sleep(0.05)
                 except Exception:
@@ -234,15 +333,26 @@ def attach_endpoints(app: Sanic):
             return response.text("invalid public key format", status=400)
 
         username = _get_str_arg(request, "username") or "unknown"
+        room_id = _get_str_arg(request, "room_id") or "default"
         user_key = f"{request.ip}, {username}"
         
-        # Usar chave compartilhada da sala para que todos possam descriptografar
-        # Em uma implementação futura, isso seria por sala/canal
-        encrypted_data = rsa.encrypt(SHARED_ROOM_KEY, public_key)
+        # Generate per-client symmetric key
+        client_key = Fernet.generate_key()
+        CLIENT_KEYS[user_key] = client_key
+        
+        # Ensure room exists and has a key
+        if room_id not in ROOM_KEYS:
+            ROOM_KEYS[room_id] = Fernet.generate_key()
+        
+        # Assign user to room
+        USER_ROOMS[user_key] = room_id
+        USER_NICKNAMES[user_key] = username
         
         if user_key not in USERS:
             USERS[user_key] = username
-            CLIENT_KEYS[user_key] = SHARED_ROOM_KEY  # Rastrear para métricas
+        
+        # Encrypt the client key with RSA
+        encrypted_data = rsa.encrypt(client_key, public_key)
 
         return response.raw(encrypted_data)
     
@@ -313,13 +423,18 @@ def run_server(
     dev: bool = False,
     admin_password: str | None = None,
     ssl_cert: str | None = None,
-    ssl_key: str | None = None
+    ssl_key: str | None = None,
+    force_ssl: bool = False
 ) -> None:
-    """Inicia o servidor com suporte opcional para TLS/SSL"""
+    """Start server with optional TLS/SSL support. If force_ssl is True, require SSL certificates."""
     loader = AppLoader(factory=partial(create_app, "CMD_SERVER", admin_password))
     app = loader.load()
     
-    # Configurar SSL se certificados forem fornecidos
+    # Force SSL in production if requested
+    if force_ssl and (not ssl_cert or not ssl_key):
+        raise ValueError("SSL certificates are required when force_ssl=True. Provide --ssl-cert and --ssl-key.")
+    
+    # Configure SSL if certificates are provided
     ssl_context = None
     if ssl_cert and ssl_key:
         import ssl

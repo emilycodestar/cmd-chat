@@ -1,17 +1,25 @@
 import json
 import time
 import threading
-
+import os
+from pathlib import Path
 from websocket import create_connection, WebSocketConnectionClosedException
 
 from cmd_chat.client.core.crypto import RSAService
 from cmd_chat.client.core.default_renderer import DefaultClientRenderer
 from cmd_chat.client.core.rich_renderer import RichClientRenderer
+from cmd_chat.client.core.json_renderer import JsonClientRenderer
 
-from cmd_chat.client.config import RENDER_TIME
+from cmd_chat.client.config import (
+    RENDER_TIME, 
+    MESSAGES_TO_SHOW, 
+    ENABLE_LOCAL_HISTORY,
+    RENDERER_MODE
+)
 
 
-class Client(RSAService, RichClientRenderer):
+class Client(RSAService):
+    """Enhanced client with support for commands, rooms, renderers, and local history."""
 
     def __init__(
         self,
@@ -20,7 +28,9 @@ class Client(RSAService, RichClientRenderer):
         username: str,
         password: str | None = None,
         token: str | None = None,
-        use_ssl: bool = False
+        use_ssl: bool = False,
+        room_id: str = "default",
+        renderer_mode: str | None = None
     ):
         super().__init__()
         self.server = server
@@ -29,8 +39,27 @@ class Client(RSAService, RichClientRenderer):
         self.password = password or ""
         self.token = token
         self.use_ssl = use_ssl
+        self.room_id = room_id
+        self.last_sequence = 0
+        self.reconnecting = False
         
-        # Detectar protocolo baseado em SSL
+        # Select renderer based on mode
+        renderer = renderer_mode or RENDERER_MODE
+        if renderer == "json":
+            self.renderer = JsonClientRenderer()
+        elif renderer == "minimal":
+            self.renderer = DefaultClientRenderer()
+        else:
+            self.renderer = RichClientRenderer()
+        
+        # Set username for renderer
+        self.renderer.username = self.username
+        
+        # Local history
+        self.local_history_enabled = ENABLE_LOCAL_HISTORY
+        self.history_file = Path.home() / ".cmd_chat_history.json" if self.local_history_enabled else None
+        
+        # Protocol setup
         http_proto = "https" if use_ssl else "http"
         ws_proto = "wss" if use_ssl else "ws"
         
@@ -43,36 +72,94 @@ class Client(RSAService, RichClientRenderer):
         self.__stop_threads = False
         self.last_heartbeat = time.time()
 
-    def _ws_full(self, path: str) -> str:
-        """Constrói URL WebSocket completa com autenticação"""
+    def _ws_full(self, path: str, room_id: str | None = None) -> str:
+        """Build full WebSocket URL with authentication and room."""
+        params = []
         if self.token:
-            return f"{self.ws_url}{path}?token={self.token}"
+            params.append(f"token={self.token}")
         elif self.password:
-            return f"{self.ws_url}{path}?password={self.password}"
-        return f"{self.ws_url}{path}"
+            params.append(f"password={self.password}")
+        if room_id:
+            params.append(f"room_id={room_id}")
+        elif self.room_id:
+            params.append(f"room_id={self.room_id}")
+        if self.last_sequence > 0:
+            params.append(f"last_sequence={self.last_sequence}")
+        
+        query = "&".join(params)
+        return f"{self.ws_url}{path}?{query}" if query else f"{self.ws_url}{path}"
 
-    def _connect_ws(self, path: str, retries: int = 5, backoff: float = 0.5):
+    def _connect_ws(self, path: str, retries: int = 5, backoff: float = 0.5, show_status: bool = True):
+        """Connect to WebSocket with reconnection status indicator."""
         last_exc: Exception = ConnectionError("Failed to connect")
         for attempt in range(retries):
+            if attempt > 0 and show_status and not self.reconnecting:
+                self.reconnecting = True
+                if RENDERER_MODE != "json":
+                    print("⏳ Reconnecting...", end="\r")
+            
             try:
-                return create_connection(self._ws_full(path))
+                ws = create_connection(self._ws_full(path, self.room_id))
+                if self.reconnecting and RENDERER_MODE != "json":
+                    print("✅ Reconnected successfully" + " " * 20)
+                    self.reconnecting = False
+                return ws
             except Exception as exc:
                 last_exc = exc
                 time.sleep(backoff * (2 ** attempt))
+        
+        if self.reconnecting:
+            self.reconnecting = False
         print(f"Can't connect to {path}: {last_exc}")
         raise last_exc
+
+    def _handle_command(self, command: str, ws) -> bool:
+        """Handle client-side commands. Returns True if command was handled."""
+        if command.startswith("/"):
+            ws.send(json.dumps({
+                "text": command,
+                "username": self.username
+            }))
+            return True
+        return False
+
+    def _save_to_history(self, message_data: dict):
+        """Save message to local encrypted history."""
+        if not self.local_history_enabled or not self.history_file:
+            return
+        
+        try:
+            history = []
+            if self.history_file.exists():
+                with open(self.history_file, 'r') as f:
+                    history = json.load(f)
+            
+            history.append({
+                "timestamp": time.time(),
+                "room_id": self.room_id,
+                "data": message_data
+            })
+            
+            # Keep only last 1000 entries
+            if len(history) > 1000:
+                history = history[-1000:]
+            
+            with open(self.history_file, 'w') as f:
+                json.dump(history, f)
+        except Exception:
+            pass  # Silently fail history saving
 
     def send_info(self):
         ws = self._connect_ws("/talk")
         try:
             while not self.__stop_threads:
                 try:
-                    user_input = input("You're message: ")
+                    user_input = input("You're message: " if RENDERER_MODE != "json" else "")
                     
                     if user_input.strip() == "":
-                        continue  # Ignorar mensagens vazias
+                        continue
                     
-                    if user_input == "q":
+                    if user_input == "q" or user_input == "/quit":
                         self.__stop_threads = True
                         try:
                             if ws:
@@ -81,6 +168,33 @@ class Client(RSAService, RichClientRenderer):
                         except Exception:
                             pass
                         break
+                    
+                    # Handle commands
+                    if user_input.startswith("/"):
+                        self._handle_command(user_input, ws)
+                        # Check for command response
+                        try:
+                            ws.settimeout(0.5)
+                            raw = ws.recv()
+                            if isinstance(raw, bytes):
+                                raw = raw.decode("utf-8")
+                            msg = json.loads(raw)
+                            
+                            if msg.get("type") == "command":
+                                cmd = msg.get("command")
+                                if cmd == "quit":
+                                    self.__stop_threads = True
+                                    break
+                                elif cmd == "room":
+                                    self.room_id = msg.get("room_id", self.room_id)
+                                elif cmd == "clear" and RENDERER_MODE != "json":
+                                    self.renderer.clear_console()
+                                
+                                if RENDERER_MODE != "json":
+                                    print(msg.get("message", ""))
+                        except Exception:
+                            pass
+                        continue
                     
                     # Message length validation (max 10KB)
                     if len(user_input) > 10_240:
@@ -94,6 +208,14 @@ class Client(RSAService, RichClientRenderer):
                     })
                     ws.send(socket_message)
                     self.last_heartbeat = time.time()
+                    
+                    # Save to local history
+                    if self.local_history_enabled:
+                        self._save_to_history({
+                            "text": message,
+                            "username": self.username,
+                            "room_id": self.room_id
+                        })
                     
                     # Check for response (including heartbeats)
                     try:
@@ -109,9 +231,9 @@ class Client(RSAService, RichClientRenderer):
                             self.last_heartbeat = time.time()
                         # Handle error messages
                         elif msg.get("status") == "error":
-                            print(f"Server error: {msg.get('message', 'Unknown error')}")
+                            if RENDERER_MODE != "json":
+                                print(f"Server error: {msg.get('message', 'Unknown error')}")
                     except Exception:
-                        # Timeout or no message - that's OK
                         pass
                 except (WebSocketConnectionClosedException, ConnectionResetError, ConnectionAbortedError, OSError):
                     try:
@@ -120,7 +242,7 @@ class Client(RSAService, RichClientRenderer):
                                 ws.close()
                             except Exception:
                                 pass
-                        ws = self._connect_ws("/talk")
+                        ws = self._connect_ws("/talk", show_status=True)
                         self.last_heartbeat = time.time()
                         continue
                     except Exception:
@@ -154,7 +276,8 @@ class Client(RSAService, RichClientRenderer):
                     
                     # Payload size validation (max 1MB)
                     if len(raw) > 1_048_576:
-                        print("Warning: Message too large, skipping")
+                        if RENDERER_MODE != "json":
+                            print("Warning: Message too large, skipping")
                         continue
                     
                     response = json.loads(raw)
@@ -165,13 +288,35 @@ class Client(RSAService, RichClientRenderer):
                         self.last_heartbeat = time.time()
                         continue
                     
-                    # Sempre atualizar se houver mudanças
+                    # Update last_sequence for delta updates
+                    if "last_sequence" in response:
+                        self.last_sequence = response["last_sequence"]
+                    
+                    # Update room_id if changed
+                    if "room_id" in response:
+                        self.room_id = response["room_id"]
+                    
+                    # Filter messages based on buffer size
+                    messages = response.get("messages", [])
+                    if len(messages) > MESSAGES_TO_SHOW:
+                        messages = messages[-MESSAGES_TO_SHOW:]
+                        response["messages"] = messages
+                    
+                    # Update if there are changes
                     if last_try != response:
-                        last_try = response
-                        # Atualizar tela sempre que houver mudanças
-                        self.clear_console()
-                        if len(response.get("messages", [])) > 0:
-                            self.print_chat(response=last_try)
+                        last_try = response.copy()
+                        
+                        # Save to local history
+                        if self.local_history_enabled and messages:
+                            for msg in messages:
+                                self._save_to_history(msg)
+                        
+                        # Render chat
+                        if RENDERER_MODE != "json":
+                            self.renderer.clear_console()
+                        if len(messages) > 0:
+                            self.renderer.print_chat(response=last_try)
+                    
                     self.last_heartbeat = time.time()
                 except (WebSocketConnectionClosedException, ConnectionResetError, ConnectionAbortedError, OSError):
                     try:
@@ -180,11 +325,12 @@ class Client(RSAService, RichClientRenderer):
                                 ws.close()
                             except Exception:
                                 pass
-                        ws = self._connect_ws("/update")
+                        ws = self._connect_ws("/update", show_status=True)
                         self.last_heartbeat = time.time()
                         continue
                     except Exception:
-                        print("Connection lost: can't establish update channel")
+                        if RENDERER_MODE != "json":
+                            print("Connection lost: can't establish update channel")
                         self.__stop_threads = True
                         break
                 except KeyboardInterrupt:
@@ -202,8 +348,9 @@ class Client(RSAService, RichClientRenderer):
                 pass
 
     def _validate_keys(self) -> None:
+        """Validate and exchange keys with server."""
         self._request_key(
-            url=f"{self.base_url}/get_key",
+            url=f"{self.base_url}/get_key?room_id={self.room_id}",
             username=self.username,
             password=self.password,
             token=self.token
@@ -211,6 +358,7 @@ class Client(RSAService, RichClientRenderer):
         self._remove_keys()
 
     def run(self):
+        """Run the client."""
         self._validate_keys()
         threads = [
             threading.Thread(target=self.send_info, daemon=True),
