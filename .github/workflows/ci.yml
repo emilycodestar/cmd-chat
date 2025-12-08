@@ -53,7 +53,7 @@ jobs:
     - name: Check code syntax
       run: |
         python -m py_compile cmd_chat.py
-        find cmd_chat -name "*.py" -exec python -m py_compile {} \;
+        python -c "import pathlib; [__import__('py_compile').compile(str(p)) for p in pathlib.Path('cmd_chat').rglob('*.py')]"
     
     - name: Test imports
       run: |
