@@ -76,13 +76,27 @@ Everything happens in memory only. Nothing is written to disk.
    pip install -r requirements.txt
    ```
 
-3. **Start the server:**
+3. **Configure (optional):** Create a `.env` file from `.env.example`:
    ```bash
+   cp .env.example .env
+   # Edit .env with your settings
+   ```
+
+4. **Start the server:**
+   ```bash
+   # With .env file configured:
+   python cmd_chat.py serve
+   
+   # Or with command-line arguments:
    python cmd_chat.py serve 0.0.0.0 1000 --password YOUR_SECURE_PASSWORD
    ```
 
-4. **Connect a client:**
+5. **Connect a client:**
    ```bash
+   # With .env file configured:
+   python cmd_chat.py connect
+   
+   # Or with command-line arguments:
    python cmd_chat.py connect localhost 1000 USERNAME YOUR_SECURE_PASSWORD
    ```
 
@@ -90,10 +104,29 @@ Everything happens in memory only. Nothing is written to disk.
 
 ## 📖 Usage
 
+### Configuration via .env File
+
+You can configure the application using a `.env` file, making CLI arguments optional:
+
+```bash
+# Copy the example file
+cp .env.example .env
+
+# Edit .env with your settings
+# Then run without arguments:
+python cmd_chat.py serve
+python cmd_chat.py connect
+```
+
+**Priority order:** CLI arguments > .env file > defaults
+
 ### Server Commands
 
 ```bash
-# Basic server startup
+# Basic server startup (with .env configured)
+python cmd_chat.py serve
+
+# Or with command-line arguments
 python cmd_chat.py serve <IP_ADDRESS> <PORT> --password <PASSWORD>
 
 # With SSL/TLS support
@@ -147,10 +180,39 @@ curl -X POST http://localhost:1000/generate_token \
 
 ## ⚙️ Configuration
 
+### .env File Support
+
+You can configure the application using a `.env` file, making CLI arguments optional. Create a `.env` file from `.env.example`:
+
+```bash
+cp .env.example .env
+# Edit .env with your settings
+```
+
+**Priority order:** CLI arguments > .env file > defaults
+
 ### Environment Variables
 
+**Server Configuration:**
 | Variable | Default | Description |
 |---------|---------|-------------|
+| `SERVER_HOST` | 0.0.0.0 | Server IP address |
+| `SERVER_PORT` | 1000 | Server port |
+| `ADMIN_PASSWORD` | - | Admin password (required) |
+| `SSL_CERT_PATH` | - | Path to SSL certificate file |
+| `SSL_KEY_PATH` | - | Path to SSL key file |
+| `FORCE_SSL` | false | Force SSL/TLS (require certificates) |
+
+**Client Configuration:**
+| Variable | Default | Description |
+|---------|---------|-------------|
+| `CLIENT_SERVER` | - | Server IP address |
+| `CLIENT_PORT` | 1000 | Server port |
+| `CLIENT_USERNAME` | - | Username |
+| `CLIENT_PASSWORD` | - | Password (or use CLIENT_TOKEN) |
+| `CLIENT_TOKEN` | - | Authentication token |
+| `CLIENT_USE_SSL` | false | Use SSL/TLS (wss://) |
+| `CLIENT_ROOM` | default | Room ID to join |
 | `CLIENT_RENDER_TIME` | 0.1 | Client render update interval in seconds |
 | `CLIENT_MESSAGES_TO_SHOW` | 10 | Number of messages to display in buffer |
 | `ENABLE_LOCAL_HISTORY` | false | Enable local encrypted message history |

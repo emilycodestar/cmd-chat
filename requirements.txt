@@ -6,3 +6,4 @@ colorama>=0.4.6
 pydantic>=2.5.0
 websocket-client>=1.6.0
 rich>=13.7.0
+python-dotenv>=1.0.0
