@@ -1,6 +1,5 @@
 from typing import Optional
 from .models import Message, UserSession
-from .logger import logger
 
 
 class MessageStore:
@@ -9,7 +8,7 @@ class MessageStore:
 
     def add(self, message: Message) -> None:
         self._messages.append(message)
-        logger.info(f"Message added: {message.id} from {message.username}")
+
 
     def get_all(self) -> list[Message]:
         return self._messages.copy()
@@ -17,7 +16,7 @@ class MessageStore:
     def clear(self) -> None:
         count = len(self._messages)
         self._messages.clear()
-        logger.info(f"Cleared {count} messages")
+
 
     def count(self) -> int:
         return len(self._messages)
@@ -29,7 +28,7 @@ class UserSessionStore:
 
     def add(self, session: UserSession) -> None:
         self._sessions[session.user_id] = session
-        logger.info(f"Session created: {session.user_id} ({session.username})")
+
 
     def get(self, user_id: str) -> Optional[UserSession]:
         return self._sessions.get(user_id)
@@ -41,7 +40,7 @@ class UserSessionStore:
     def remove(self, user_id: str) -> None:
         if user_id in self._sessions:
             del self._sessions[user_id]
-            logger.info(f"Session removed: {user_id}")
+
 
     def cleanup_stale(self, timeout_seconds: int = 3600) -> int:
         stale_ids = [
@@ -49,8 +48,6 @@ class UserSessionStore:
         ]
         for uid in stale_ids:
             del self._sessions[uid]
-        if stale_ids:
-            logger.info(f"Cleaned up {len(stale_ids)} stale sessions")
         return len(stale_ids)
 
     def get_all(self) -> list[UserSession]:

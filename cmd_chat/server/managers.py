@@ -1,7 +1,6 @@
 import asyncio
 from typing import Optional
 from sanic import Websocket
-from .logger import logger
 
 
 class ConnectionManager:
@@ -12,13 +11,11 @@ class ConnectionManager:
     async def connect(self, user_id: str, websocket: Websocket) -> None:
         async with self._lock:
             self.active_connections[user_id] = websocket
-        logger.info(f"Client connected: {user_id}")
 
     async def disconnect(self, user_id: str) -> None:
         async with self._lock:
             if user_id in self.active_connections:
                 del self.active_connections[user_id]
-        logger.info(f"Client disconnected: {user_id}")
 
     async def broadcast(self, message: str, exclude_user: Optional[str] = None) -> None:
         async with self._lock:
@@ -29,7 +26,6 @@ class ConnectionManager:
                 try:
                     await connection.send(message)
                 except Exception:
-                    logger.exception(f"Failed to send message to {user_id}")
                     disconnected.append(user_id)
 
             for user_id in disconnected:
@@ -43,6 +39,5 @@ class ConnectionManager:
                     await connection.send(message)
                     return True
                 except Exception:
-                    logger.exception(f"Failed to send personal message to {user_id}")
                     return False
         return False

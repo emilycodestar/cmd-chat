@@ -1,5 +1,4 @@
 from typing import Optional
-from .logger import logger
 from .factory import create_app
 
 
@@ -10,7 +9,6 @@ def run_server(
     workers: int = 1,
 ) -> None:
     app = create_app(password=password or "")
-    logger.info(f"Starting server on {host}:{port}")
 
     app.run(
         host=host,

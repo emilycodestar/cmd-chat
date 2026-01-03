@@ -7,7 +7,6 @@ from sanic import Sanic, Request, response, Websocket
 from sanic.response import HTTPResponse, json as json_response
 
 from .models import Message, UserSession
-from .logger import logger
 from .helpers import (
     get_client_ip,
     send_state,
@@ -31,8 +30,6 @@ async def srp_init(request: Request, app: Sanic) -> HTTPResponse:
 
         user_id, B, salt = app.ctx.srp_manager.init_auth(username, client_public)
 
-        logger.info(f"SRP init: {username} ({user_id[:8]}...)")
-
         return response.json(
             {
                 "user_id": user_id,
@@ -42,7 +39,6 @@ async def srp_init(request: Request, app: Sanic) -> HTTPResponse:
         )
 
     except Exception:
-        logger.exception("SRP init failed")
         return response.json({"error": "SRP init failed"}, status=500)
 
 
@@ -70,7 +66,6 @@ async def srp_verify(request: Request, app: Sanic) -> HTTPResponse:
         )
         app.ctx.session_store.add(session)
 
-        logger.info(f"SRP verified: {username} ({user_id[:8]}...)")
 
         return response.json(
             {
@@ -80,10 +75,8 @@ async def srp_verify(request: Request, app: Sanic) -> HTTPResponse:
         )
 
     except ValueError as e:
-        logger.warning(f"SRP verify failed: {e}")
         return response.json({"error": str(e)}, status=401)
     except Exception:
-        logger.exception("SRP verify failed")
         return response.json({"error": "SRP verify failed"}, status=500)
 
 
@@ -128,7 +121,7 @@ async def chat_ws(request: Request, ws: Websocket, app: Sanic) -> None:
             )
 
     except Exception:
-        logger.exception(f"WebSocket error for {user_id}")
+        pass
     finally:
         await manager.disconnect(user_id)
         await manager.broadcast(
