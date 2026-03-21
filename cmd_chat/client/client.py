@@ -157,7 +157,8 @@ class Client:
             self.console.print("[dim italic]No messages yet...[/]")
 
         self.console.print("─" * 60)
-        self.console.print("[dim]Type message and press Enter. 'q' to quit.[/]")
+        # updated hint text to let people know about the new clear command
+        self.console.print("[dim]Type message and press Enter. '/clear' to wipe history. 'q' to quit.[/]")
 
     async def receive_loop(self) -> None:
         try:
@@ -208,6 +209,14 @@ class Client:
                 if text.lower() in ("q", "quit", "exit"):
                     self.running = False
                     break
+                
+                # if someone types /clear, send the raw clear event to the server
+                # instead of sending it as a chat message. the server will then
+                # broadcast it to everyone in the room.
+                if text.strip() == "/clear":
+                    await self.send_json({"type": "clear"})
+                    continue
+
                 if text.strip():
                     encrypted = self.room_fernet.encrypt(text.encode()).decode()
                     await self.send_json({"type": "message", "text": encrypted})

@@ -121,6 +121,9 @@ python cmd_chat.py connect SERVER_IP 3000 username mysecret
 
 ![Example](example.gif)
 
+commands inside chat:
+- type `/clear` and hit enter to scrub the chat history for everyone in the room.
+
 ## features
 
 - **ram only** — nothing touches disk
