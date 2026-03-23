@@ -1,8 +1,4 @@
-import asyncio 
-import cmd_chat
+from cmd_chat import main
 
-async def main():
-    await cmd_chat.run()
-
-if __name__ == '__main__':
-    asyncio.run(main())
+if __name__ == "__main__":
+    main()

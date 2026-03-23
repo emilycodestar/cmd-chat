@@ -1,38 +1,36 @@
-import asyncio
 import argparse
-from cmd_chat.server.server import run_server
-from cmd_chat.client.client import Client
 
-def run_http_server(ip: str, port: int, password: str | None) -> None:
-    run_server(ip, int(port), False, password)
+from cmd_chat.server import run_server
+from cmd_chat.client import Client
 
-async def run_client(username: str, server: str, port: int, password: str | None) -> None:
-    Client(server=server, port=port, username=username, password=password).run()
 
-async def run() -> None:
-    parser = argparse.ArgumentParser(description='Command-line chat application')
-    subparsers = parser.add_subparsers(dest='command', required=True)
+def main():
+    parser = argparse.ArgumentParser(description="Command-line chat application")
+    subparsers = parser.add_subparsers(dest="command", required=True)
 
-    serve_p = subparsers.add_parser('serve', help='Run server')
-    serve_p.add_argument('ip_address')
-    serve_p.add_argument('port')
-    serve_p.add_argument('--password', '-p', required=True, help='Admin password required for clients')
+    serve_p = subparsers.add_parser("serve", help="Run server")
+    serve_p.add_argument("ip_address")
+    serve_p.add_argument("port")
+    serve_p.add_argument("--password", "-p", required=True)
 
-    connect_p = subparsers.add_parser('connect', help='Connect to server')
-    connect_p.add_argument('ip_address')
-    connect_p.add_argument('port')
-    connect_p.add_argument('username')
-    connect_p.add_argument('password', help='Password to auth on server')
+    connect_p = subparsers.add_parser("connect", help="Connect to server")
+    connect_p.add_argument("ip_address")
+    connect_p.add_argument("port")
+    connect_p.add_argument("username")
+    connect_p.add_argument("password")
 
     args = parser.parse_args()
 
-    if args.command == 'serve':
-        run_http_server(args.ip_address, args.port, args.password)
-    elif args.command == 'connect':
-        await run_client(args.username, args.ip_address, int(args.port), args.password)
+    if args.command == "serve":
+        run_server(host=args.ip_address, port=int(args.port), password=args.password)
+    elif args.command == "connect":
+        Client(
+            server=args.ip_address,
+            port=int(args.port),
+            username=args.username,
+            password=args.password,
+        ).run()
 
-def main():
-    asyncio.run(run())
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

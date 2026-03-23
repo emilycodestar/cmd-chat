@@ -1,64 +1,134 @@
-# CMD CHAT
+<div align="center">
 
-**CMD CHAT** is a new milestone in console communication.  
-A fully anonymous chat between two clients, impossible to intercept or hand over.  
-All data exists only in RAM and is wiped after the session ends.  
-No logs, no traces, no compromise.
+# 🤐 CMD-CHAT
 
----
+### encrypted terminal chat. no servers. no logs. ram only.
 
-## 🔒 Key Features
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 
-- Full anonymity
-- End-to-End encryption (RSA + symmetric key)
-- Data stored only in memory (RAM), deleted on exit
-- No logging, no persistence on disk
-- Easy to run via Python or CLI
+</div>
 
 ---
 
-## ⚙️ How It Works
+peer-to-peer encrypted chat that runs in your terminal. you host, you control. close the window — everything's gone.
 
-1. The client generates an RSA key pair.
-2. The server creates a symmetric key.
-3. The client sends its public key to the server.
-4. The server encrypts the symmetric key and sends it back.
-5. The client decrypts and confirms the key.
-6. From that point, all communication is done via symmetric encryption.
+## why
 
-Everything happens in memory only. Nothing is written to disk.
+every "secure" messenger still stores metadata somewhere. this doesn't. it's just two terminals talking over an encrypted tunnel. nothing written to disk, ever.
 
----
+## how it works
 
-## 🚀 Installation & Run
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                        SRP AUTHENTICATION                        │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  CLIENT                                         SERVER           │
+│    │                                              │              │
+│    │══════════════ TCP CONNECT ══════════════════►│              │
+│    │                                              │              │
+│    │─── {"cmd":"srp_init","username","A"} ──────► │              │
+│    │         (A = client public ephemeral)        │              │
+│    │                                              │              │
+│    │◄──── {"user_id","B","salt","room_salt"} ──── │              │
+│    │         (B = server public ephemeral)        │              │
+│    │                                              │              │
+│    │  [client derives room_key via HKDF:          │              │
+│    │   room_key = HKDF(password, room_salt)]      │              │
+│    │                                              │              │
+│    │─── {"cmd":"srp_verify","user_id","M"} ─────► │              │
+│    │         (M = client proof)                   │              │
+│    │                                              │              │
+│    │◄──────── {"H_AMK","session_key"} ─────────── │              │
+│    │         (H_AMK = server proof)               │              │
+│    │                                              │              │
+│    │  [password never transmitted]                │              │
+│    │  [MITM can't derive session key]             │              │
+│    │                                              │              │
+├──────────────────────────────────────────────────────────────────┤
+│                 E2E ENCRYPTED CHAT (same socket)                 │
+├──────────────────────────────────────────────────────────────────┤
+│    │                                              │              │
+│    │◄─────── {"type":"init","messages","users"} ─ │              │
+│    │                                              │              │
+│  ┌─┴─┐                                        ┌──┴──┐            │
+│  │ C │─ {"type":"message","text":encrypted} ─►│  S  │            │
+│  │ L │                                        │  E  │            │
+│  │ I │◄── {"type":"message","data":{...}} ────│  R  │            │
+│  │ E │                                        │  V  │            │
+│  │ N │◄── {"type":"user_joined",...} ─────────│  E  │            │
+│  │ T │                                        │  R  │            │
+│  │   │◄── {"type":"user_left",...} ───────────│     │            │
+│  └─┬─┘                                        └──┬──┘            │
+│    │                                              │              │
+│    │  [server stores ONLY ciphertext]             │              │
+│    │  [server CANNOT read messages]               │              │
+│    │  [all clients with same password             │              │
+│    │   derive identical room_key]                 │              │
+│    │                                              │              │
+│    │  Encryption: Fernet (AES-128-CBC + HMAC)     │              │
+│    │  Key derivation: HKDF-SHA256                 │              │
+│    │  Protocol: newline-delimited JSON over TCP   │              │
+│    │                                              │              │
+│    │  [on disconnect: keys wiped from RAM]        │              │
+│    │                                              │              │
+└──────────────────────────────────────────────────────────────────┘
 
-### Python
+┌──────────────────────────────────────────────────────────────────┐
+│                      KEY HIERARCHY                               │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  password ──┬──► SRP ──► session_key (per-user, auth only)       │
+│             │                                                    │
+│             └──► HKDF(password, room_salt) ──► room_key (shared) │
+│                                                                  │
+│  room_salt: generated once at server start                       │
+│  room_key:  deterministic, same for all clients with same pwd    │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
 
-1. Clone the repository:
-   `git clone https://github.com/emilycodestar/cmd-chat.git`
-   `cd cmd-chat`
+**SRP (Secure Remote Password)** — password is never sent over the network. both sides prove they know it via zero-knowledge proof, then derive identical session keys.
 
-2. Create a virtual environment and install dependencies:
+## install
 
-   Linux / macOS:
-   `python -m venv venv && source venv/bin/activate && pip install -r requirements.txt`
+```bash
+git clone https://github.com/emilycodestar/cmd-chat.git
+cd cmd-chat
+python -m venv venv && source venv/bin/activate && pip install -r requirements.txt
+```
 
-   Windows (PowerShell):
-   `python -m venv venv ; .\venv\Scripts\activate ; pip install -r requirements.txt`
+windows:
 
-3. Start the server (set a password for client connections):
-   `python cmd_chat.py serve 0.0.0.0 1000 --password YOUR_PASSWORD`
+```bash
+python -m venv venv ; .\venv\Scripts\activate ; pip install -r requirements.txt
+```
 
-4. Connect a client:
-   `python cmd_chat.py connect SERVER_IP 1000 USERNAME YOUR_PASSWORD`
+## usage
 
-   Example (local run):
-   `python cmd_chat.py connect localhost 1000 tyler YOUR_PASSWORD`
+start server:
 
----
+```bash
+python cmd_chat.py serve 0.0.0.0 3000 --password mysecret
+```
 
-## 🎥 Example
+connect:
 
-Here’s how it looks in action:
+```bash
+python cmd_chat.py connect SERVER_IP 3000 username mysecret
+```
 
 ![Example](example.gif)
+
+## features
+
+- **ram only** — nothing touches disk
+- **pure sockets** — no http, no websocket, just raw tcp
+- **srp auth** — password never sent over network
+- **e2e encryption** — Fernet (AES-128-CBC + HMAC)
+- **zero dependencies on web frameworks** — only asyncio
+
+## license
+
+MIT

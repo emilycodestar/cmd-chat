@@ -12,4 +12,6 @@ __pycache__
 cmd_chat.egg-info
 build
 dist
+true.txt
 secured_console_chat.egg-info
+.pytest_cache/
