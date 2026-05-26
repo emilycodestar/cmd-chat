@@ -2,6 +2,7 @@ import asyncio
 import json
 import base64
 import os
+import ssl
 from dataclasses import asdict
 from contextlib import suppress
 from typing import Optional
@@ -35,11 +36,19 @@ class ChatServer:
         self.room_salt = os.urandom(0x10)
         self._cleanup_task: Optional[asyncio.Task] = None
 
-    async def start(self, host: str, port: int):
-        server = await asyncio.start_server(self._handle_client, host, port)
+    async def start(
+        self,
+        host: str,
+        port: int,
+        ssl_context: Optional[ssl.SSLContext] = None,
+    ):
+        server = await asyncio.start_server(
+            self._handle_client, host, port, ssl=ssl_context
+        )
         self._cleanup_task = asyncio.create_task(self._cleanup_loop())
         addr = server.sockets[0].getsockname()
-        print(f"[*] Server running on {addr[0]}:{addr[1]}")
+        proto = "TLS" if ssl_context else "plaintext"
+        print(f"[*] Server running on {addr[0]}:{addr[1]} ({proto})")
         async with server:
             await server.serve_forever()
 
@@ -247,9 +256,21 @@ def run_server(
     host: str = "0.0.0.0",
     port: int = 0x1F40,
     password: Optional[str] = None,
+    cert: Optional[str] = None,
+    key: Optional[str] = None,
 ):
+    from cmd_chat.tls import make_server_ssl_context
+
+    ssl_context, cert_pem = make_server_ssl_context(cert, key, host)
+
+    if cert_pem:
+        print("[*] Generated self-signed TLS certificate.")
+        print("[*] Share the certificate below with clients using --ca-cert,")
+        print("[*] or use --no-verify to skip certificate verification.\n")
+        print(cert_pem.decode())
+
     server = ChatServer(password or "")
     try:
-        asyncio.run(server.start(host, port))
+        asyncio.run(server.start(host, port, ssl_context=ssl_context))
     except KeyboardInterrupt:
         print("\n[*] Shutting down...")

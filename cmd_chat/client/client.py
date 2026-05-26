@@ -1,6 +1,7 @@
 import asyncio
 import json
 import base64
+import ssl
 from typing import Optional
 
 import srp
@@ -26,12 +27,20 @@ BANNER = """
 
 class Client:
     def __init__(
-        self, server: str, port: int, username: str, password: Optional[str] = None
+        self,
+        server: str,
+        port: int,
+        username: str,
+        password: Optional[str] = None,
+        ca_cert: Optional[str] = None,
+        no_verify: bool = False,
     ):
         self.server = server
         self.port = port
         self.username = username
         self.password = (password or "").encode()
+        self.ca_cert = ca_cert
+        self.no_verify = no_verify
         self.user_id: Optional[str] = None
         self.fernet: Optional[Fernet] = None
         self.room_fernet: Optional[Fernet] = None
@@ -201,7 +210,7 @@ class Client:
             self.connected = False
 
     async def input_loop(self) -> None:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         while self.running:
             try:
                 text = await loop.run_in_executor(None, input)
@@ -214,6 +223,11 @@ class Client:
             except (EOFError, KeyboardInterrupt):
                 self.running = False
                 break
+            except OSError:
+                # Windows raises WinError 64 (network name no longer available)
+                # when the server closes the connection while we're draining.
+                self.running = False
+                break
             except asyncio.CancelledError:
                 break
 
@@ -222,10 +236,23 @@ class Client:
         self.console.print(BANNER)
         self.console.print()
 
+        from cmd_chat.tls import make_client_ssl_context
+
+        ssl_context: ssl.SSLContext = make_client_ssl_context(
+            ca_cert_path=self.ca_cert,
+            no_verify=self.no_verify,
+        )
+
         try:
-            self.info(f"Connecting to {self.server}:{self.port}...")
+            self.info(f"Connecting to {self.server}:{self.port} (TLS)...")
             self.reader, self.writer = await asyncio.wait_for(
-                asyncio.open_connection(self.server, self.port), timeout=10.0
+                asyncio.open_connection(
+                    self.server,
+                    self.port,
+                    ssl=ssl_context,
+                    server_hostname=self.server,
+                ),
+                timeout=10.0,
             )
             self.success("Connected")
 
